@@ -1,0 +1,1017 @@
+using System.Collections.Concurrent;
+using Godot;
+using MegaCrit.Sts2.Core.AutoSlay.Helpers;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Merchant;
+using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.Potions;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Map;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Events;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.Core.Nodes.Potions;
+using MegaCrit.Sts2.Core.Nodes.Rewards;
+using MegaCrit.Sts2.Core.Nodes.RestSite;
+using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Nodes.Screens;
+using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
+using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
+using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
+using MegaCrit.Sts2.Core.Rewards;
+using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Runs;
+using aibot.Scripts.Config;
+using aibot.Scripts.Decision;
+using aibot.Scripts.Knowledge;
+using aibot.Scripts.Ui;
+
+namespace aibot.Scripts.Core;
+
+public sealed class AiBotRuntime : IDisposable
+{
+    private readonly SemaphoreSlim _tickGate = new(1, 1);
+    private readonly ConcurrentDictionary<string, byte> _processedRoomKeys = new();
+    private readonly ConcurrentDictionary<string, DateTime> _logThrottle = new();
+
+    private CancellationTokenSource? _loopCts;
+    private Task? _loopTask;
+    private IDisposable? _selectorScope;
+    private string? _modDirectory;
+    private DateTime _nextActionAtUtc = DateTime.MinValue;
+    private AiBotDecisionPanel? _decisionPanel;
+
+    public static AiBotRuntime Instance { get; } = new();
+
+    public AiBotConfig Config { get; private set; } = new();
+
+    public GuideKnowledgeBase? KnowledgeBase { get; private set; }
+
+    public IAiDecisionEngine? DecisionEngine { get; private set; }
+
+    public AiBotStateAnalyzer? StateAnalyzer { get; private set; }
+
+    public RunAnalysis? CurrentAnalysis { get; private set; }
+
+    public bool IsInitialized { get; private set; }
+
+    public bool IsActive => _loopCts is { IsCancellationRequested: false };
+
+    private AiBotRuntime()
+    {
+    }
+
+    public void Initialize(string modDirectory)
+    {
+        if (IsInitialized)
+        {
+            return;
+        }
+
+        _modDirectory = modDirectory;
+        Config = AiBotConfigLoader.Load(modDirectory);
+        KnowledgeBase = new GuideKnowledgeBase(modDirectory);
+        KnowledgeBase.Load();
+        StateAnalyzer = new AiBotStateAnalyzer(KnowledgeBase);
+
+        var heuristic = new GuideHeuristicDecisionEngine(KnowledgeBase);
+        DeepSeekDecisionEngine? cloud = Config.CanUseCloud ? new DeepSeekDecisionEngine(Config) : null;
+        DecisionEngine = new HybridDecisionEngine(Config, heuristic, cloud);
+
+        IsInitialized = true;
+        Log.Info($"[AiBot] Runtime initialized. CloudEnabled={Config.CanUseCloud}");
+    }
+
+    public void NotifyNewRunTask(Task<RunState> runTask)
+    {
+        if (!IsInitialized || !Config.Enabled || !Config.AutoTakeOverNewRun)
+        {
+            return;
+        }
+
+        TaskHelper.RunSafely(ActivateWhenTaskCompletesAsync(runTask, "new-run"));
+    }
+
+    public void NotifyLoadRunTask(Task loadTask)
+    {
+        if (!IsInitialized || !Config.Enabled || !Config.AutoTakeOverContinueRun)
+        {
+            return;
+        }
+
+        TaskHelper.RunSafely(ActivateWhenTaskCompletesAsync(loadTask, "continue-run"));
+    }
+
+    public RunAnalysis GetCurrentAnalysis()
+    {
+        if (CurrentAnalysis is not null)
+        {
+            return CurrentAnalysis;
+        }
+
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState is null || StateAnalyzer is null)
+        {
+            return new RunAnalysis(0, "Unknown", "Generalist", string.Empty, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+        }
+
+        CurrentAnalysis = StateAnalyzer.Analyze(runState);
+        return CurrentAnalysis;
+    }
+
+    private async Task ActivateWhenTaskCompletesAsync(Task task, string reason)
+    {
+        try
+        {
+            await task;
+            await WaitForRuntimeReadyAsync();
+            Activate(reason);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"[AiBot] Failed to activate after {reason}: {ex}");
+        }
+    }
+
+    public void Activate(string reason)
+    {
+        if (!IsInitialized || DecisionEngine is null || StateAnalyzer is null)
+        {
+            return;
+        }
+
+        Deactivate();
+
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState is null)
+        {
+            Log.Warn($"[AiBot] Activate skipped for {reason}: run state is null.");
+            return;
+        }
+
+        CurrentAnalysis = StateAnalyzer.Analyze(runState);
+        _processedRoomKeys.Clear();
+        AiBotDecisionFeed.Clear();
+        _loopCts = new CancellationTokenSource();
+        TryInstallSelector();
+        _loopTask = TaskHelper.RunSafely(RunLoopAsync(_loopCts.Token));
+        Log.Info($"[AiBot] Activated from {reason}. Character={CurrentAnalysis.CharacterName}, Build={CurrentAnalysis.RecommendedBuildName}");
+        LogThrottled("activate-state", $"[AiBot] Activation state: room={runState.CurrentRoom?.RoomType}, visited={FormatMapCoords(runState.VisitedMapCoords)}, mapVisible={NMapScreen.Instance?.IsVisibleInTree() ?? false}", TimeSpan.FromSeconds(2));
+    }
+
+    public void Deactivate()
+    {
+        if (_loopCts is not null)
+        {
+            _loopCts.Cancel();
+            _loopCts.Dispose();
+            _loopCts = null;
+        }
+
+        _loopTask = null;
+        _nextActionAtUtc = DateTime.MinValue;
+        _processedRoomKeys.Clear();
+        DisposeSelector();
+        UpdateDecisionPanelVisibility();
+    }
+
+    private async Task RunLoopAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (!await _tickGate.WaitAsync(0, cancellationToken))
+            {
+                await Task.Delay(Config.PollIntervalMs, cancellationToken);
+                continue;
+            }
+
+            try
+            {
+                if (NRun.Instance is null)
+                {
+                    LogThrottled("loop-wait-run", "[AiBot] Loop waiting: NRun.Instance is null.", TimeSpan.FromSeconds(2));
+                    await Task.Delay(Config.PollIntervalMs, cancellationToken);
+                    continue;
+                }
+
+                await TickOnceAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[AiBot] Tick failed: {ex}");
+            }
+            finally
+            {
+                _tickGate.Release();
+            }
+
+            await Task.Delay(Config.PollIntervalMs, cancellationToken);
+        }
+    }
+
+    private async Task TickOnceAsync(CancellationToken cancellationToken)
+    {
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState is null || DecisionEngine is null || StateAnalyzer is null)
+        {
+            LogThrottled("tick-no-state", $"[AiBot] Tick skipped: runState={runState is not null}, decisionEngine={DecisionEngine is not null}, analyzer={StateAnalyzer is not null}", TimeSpan.FromSeconds(2));
+            return;
+        }
+
+        CurrentAnalysis = StateAnalyzer.Analyze(runState);
+        EnsureDecisionPanel();
+
+        if (NMapScreen.Instance is not null)
+        {
+            LogThrottled(
+                "tick-map-presence",
+                $"[AiBot] Tick state: room={runState.CurrentRoom?.RoomType}, mapVisible={NMapScreen.Instance.IsVisibleInTree()}, mapOpen={NMapScreen.Instance.IsOpen}, mapTraveling={NMapScreen.Instance.IsTraveling}, visited={FormatMapCoords(runState.VisitedMapCoords)}",
+                TimeSpan.FromSeconds(2));
+        }
+
+        if (await TryHandleOverlayAsync(cancellationToken))
+        {
+            return;
+        }
+
+        if (await TryHandleCombatAsync(runState, cancellationToken))
+        {
+            return;
+        }
+
+        if (NMapScreen.Instance is { IsOpen: true } && await TryHandleMapAsync(runState, cancellationToken))
+        {
+            return;
+        }
+
+        if (await TryHandleRoomAsync(runState, cancellationToken))
+        {
+            return;
+        }
+
+        await TryHandleMapAsync(runState, cancellationToken);
+    }
+
+    private async Task<bool> TryHandleOverlayAsync(CancellationToken cancellationToken)
+    {
+        var overlay = NOverlayStack.Instance?.Peek();
+        switch (overlay)
+        {
+            case NCardRewardSelectionScreen cardRewardScreen:
+                return await HandleCardRewardScreenAsync(cardRewardScreen, cancellationToken);
+            case NRewardsScreen rewardsScreen:
+                return await HandleRewardsScreenAsync(rewardsScreen, cancellationToken);
+            default:
+                return false;
+        }
+    }
+
+    private async Task<bool> HandleCardRewardScreenAsync(NCardRewardSelectionScreen screen, CancellationToken cancellationToken)
+    {
+        if (DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var holders = UiHelper.FindAll<NCardHolder>(screen)
+            .Where(holder => holder.CardModel is not null)
+            .ToList();
+        if (holders.Count == 0)
+        {
+            LogThrottled("overlay-cardreward-idle", "[AiBot] Overlay idle: card reward screen has no selectable cards.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        var options = holders.Select(holder => holder.CardModel).Where(card => card is not null).Cast<CardModel>().ToList();
+        var decision = await DecisionEngine.ChooseCardRewardAsync(options, GetCurrentAnalysis(), cancellationToken);
+        var chosenHolder = holders.FirstOrDefault(holder => holder.CardModel == decision.Card) ?? holders[0];
+        Log.Info($"[AiBot] Card reward decision: {decision.Reason}");
+        chosenHolder.EmitSignal(NCardHolder.SignalName.Pressed, chosenHolder);
+        return true;
+    }
+
+    private async Task<bool> HandleRewardsScreenAsync(NRewardsScreen screen, CancellationToken cancellationToken)
+    {
+        if (DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var player = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState());
+        var allButtons = UiHelper.FindAll<NRewardButton>(screen).ToList();
+        var buttons = allButtons.Where(button => button.IsEnabled).ToList();
+        if (buttons.Count > 0)
+        {
+            var decision = await DecisionEngine.ChooseRewardAsync(buttons, player?.HasOpenPotionSlots ?? false, GetCurrentAnalysis(), cancellationToken);
+            if (decision.Button is not null)
+            {
+                await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                Log.Info($"[AiBot] Rewards decision: {decision.Reason}");
+                await UiHelper.Click(decision.Button);
+                await WaitForActionQueueToDrainAsync(cancellationToken);
+                ApplyActionCooldown(Config.ScreenActionDelayMs);
+                return true;
+            }
+        }
+
+        if (allButtons.Count > 0)
+        {
+            LogThrottled("overlay-rewards-waiting", "[AiBot] Rewards waiting: reward buttons still exist but are not enabled yet.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        var proceedButton = UiHelper.FindFirst<NProceedButton>(screen);
+        if (proceedButton is not null && proceedButton.IsEnabled)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            await UiHelper.Click(proceedButton);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        LogThrottled("overlay-rewards-idle", "[AiBot] Overlay idle: rewards screen has no enabled rewards or proceed button.", TimeSpan.FromSeconds(2));
+        return false;
+    }
+
+    private async Task<bool> TryHandleCombatAsync(RunState runState, CancellationToken cancellationToken)
+    {
+        if (DecisionEngine is null || !CombatManager.Instance.IsInProgress || !CombatManager.Instance.IsPlayPhase)
+        {
+            return false;
+        }
+
+        var player = LocalContext.GetMe(runState);
+        if (player is null)
+        {
+            return false;
+        }
+
+        var hand = PileType.Hand.GetPile(player).Cards.ToList();
+        var playable = hand.Where(CanAutoPlayCard).ToList();
+        var enemies = player.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+
+        var usablePotions = player.Potions
+            .Where(IsPotionUsableInCombat)
+            .ToList();
+
+        if (usablePotions.Count > 0)
+        {
+            var potionDecision = await DecisionEngine.ChoosePotionUseAsync(player, usablePotions, playable, enemies, GetCurrentAnalysis(), cancellationToken);
+            if (potionDecision.Potion is not null)
+            {
+                var target = potionDecision.Target ?? ChoosePotionTarget(potionDecision.Potion, player, enemies);
+                if (!RequiresPotionTarget(potionDecision.Potion) || target is not null)
+                {
+                    await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
+                    Log.Info($"[AiBot] Consumable decision: {potionDecision.Reason}");
+                    potionDecision.Potion.EnqueueManualUse(target);
+                    await WaitForActionQueueToDrainAsync(cancellationToken);
+                    ApplyActionCooldown(Config.CombatActionDelayMs);
+                    return true;
+                }
+            }
+        }
+
+        var decision = await DecisionEngine.ChooseCombatActionAsync(player, playable, enemies, GetCurrentAnalysis(), cancellationToken);
+
+        if (decision.EndTurn || decision.Card is null)
+        {
+            await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
+            Log.Info($"[AiBot] Combat decision: ending turn. {decision.Reason}");
+            PlayerCmd.EndTurn(player, false);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.CombatActionDelayMs);
+            return true;
+        }
+
+        await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
+        Log.Info($"[AiBot] Combat decision: {decision.Reason}");
+        if (!decision.Card.TryManualPlay(decision.Target))
+        {
+            Log.Warn($"[AiBot] Manual play failed for {decision.Card.Title}, ending turn instead.");
+            PlayerCmd.EndTurn(player, false);
+        }
+
+        await WaitForActionQueueToDrainAsync(cancellationToken);
+        ApplyActionCooldown(Config.CombatActionDelayMs);
+
+        return true;
+    }
+
+    private async Task<bool> TryHandleRoomAsync(RunState runState, CancellationToken cancellationToken)
+    {
+        var currentRoom = runState.CurrentRoom;
+        if (currentRoom is null)
+        {
+            return false;
+        }
+
+        var roomKey = $"{runState.CurrentActIndex}:{runState.ActFloor}:{currentRoom.RoomType}";
+        switch (currentRoom.RoomType)
+        {
+            case RoomType.Monster:
+            case RoomType.Elite:
+            case RoomType.Boss:
+                return await HandleCombatRoomAsync(roomKey, cancellationToken);
+            case RoomType.Shop:
+                return await HandleShopAsync(cancellationToken);
+            case RoomType.RestSite:
+                return await HandleRestSiteAsync(roomKey, runState, cancellationToken);
+            case RoomType.Treasure:
+                return await HandleTreasureAsync(roomKey, cancellationToken);
+            case RoomType.Event:
+                return await HandleEventAsync(roomKey, cancellationToken);
+            default:
+                return false;
+        }
+    }
+
+    private async Task<bool> HandleCombatRoomAsync(string roomKey, CancellationToken cancellationToken)
+    {
+        if (CombatManager.Instance.IsInProgress)
+        {
+            return false;
+        }
+
+        var room = GetAbsoluteNodeOrNull<NCombatRoom>("/root/Game/RootSceneContainer/Run/RoomContainer/CombatRoom");
+        if (room?.ProceedButton is null || !room.ProceedButton.IsEnabled || !room.IsVisibleInTree())
+        {
+            return false;
+        }
+
+        await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+        Log.Info($"[AiBot] Leaving combat room: {roomKey}");
+        await UiHelper.Click(room.ProceedButton);
+        await WaitForActionQueueToDrainAsync(cancellationToken);
+        ApplyActionCooldown(Config.ScreenActionDelayMs);
+        _processedRoomKeys.TryAdd(roomKey, 0);
+        return true;
+    }
+
+    private async Task<bool> HandleShopAsync(CancellationToken cancellationToken)
+    {
+        if (DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var room = GetAbsoluteNodeOrNull<NMerchantRoom>("/root/Game/RootSceneContainer/Run/RoomContainer/MerchantRoom");
+        if (room is null || room.Inventory is null)
+        {
+            return false;
+        }
+
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        var player = LocalContext.GetMe(runState);
+        if (player is null)
+        {
+            return false;
+        }
+
+        if (!room.Inventory.IsOpen)
+        {
+            if (room.MerchantButton is not null && room.MerchantButton.IsEnabled)
+            {
+                await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                room.OpenInventory();
+                ApplyActionCooldown(Config.ScreenActionDelayMs);
+                return true;
+            }
+
+            if (room.ProceedButton is not null && room.ProceedButton.IsEnabled)
+            {
+                await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                Log.Info("[AiBot] Leaving shop.");
+                await UiHelper.Click(room.ProceedButton);
+                await WaitForActionQueueToDrainAsync(cancellationToken);
+                ApplyActionCooldown(Config.ScreenActionDelayMs);
+                return true;
+            }
+
+            return false;
+        }
+
+        var inventory = room.Inventory.Inventory;
+        if (inventory is null)
+        {
+            return false;
+        }
+
+        var options = inventory.AllEntries
+            .Where(entry => entry.IsStocked && entry.EnoughGold)
+            .Where(entry => player.HasOpenPotionSlots || entry is not MerchantPotionEntry)
+            .ToList();
+
+        var decision = await DecisionEngine.ChooseShopPurchaseAsync(options, player.Gold, player.HasOpenPotionSlots, GetCurrentAnalysis(), cancellationToken);
+        if (decision.Entry is not null)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            Log.Info($"[AiBot] Shop decision: {decision.Reason}");
+            var purchased = await TryPurchaseMerchantEntryAsync(decision.Entry, inventory);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return purchased;
+        }
+
+        var backButton = UiHelper.FindAll<NBackButton>(room.Inventory).FirstOrDefault(button => button.IsVisibleInTree() && button.IsEnabled);
+        if (backButton is not null)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            Log.Info($"[AiBot] Shop decision: {decision.Reason}");
+            await UiHelper.Click(backButton);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<bool> HandleRestSiteAsync(string roomKey, RunState runState, CancellationToken cancellationToken)
+    {
+        var room = GetAbsoluteNodeOrNull<NRestSiteRoom>("/root/Game/RootSceneContainer/Run/RoomContainer/RestSiteRoom");
+        if (room is null)
+        {
+            return false;
+        }
+
+        if (!_processedRoomKeys.ContainsKey(roomKey))
+        {
+            var buttons = UiHelper.FindAll<NRestSiteButton>(room)
+                .Where(button => button.IsEnabled && button.Visible)
+                .ToList();
+            if (buttons.Count == 0)
+            {
+                return false;
+            }
+
+            var player = LocalContext.GetMe(runState);
+            var healthRatio = player is null ? 1f : player.Creature.CurrentHp / (float)Math.Max(1, player.Creature.MaxHp);
+            var preferred = healthRatio < 0.5f
+                ? buttons.FirstOrDefault(button => button.Option.GetType().Name.Contains("Rest", StringComparison.OrdinalIgnoreCase) || button.Option.GetType().Name.Contains("Sleep", StringComparison.OrdinalIgnoreCase))
+                : buttons.FirstOrDefault(button => !button.Option.GetType().Name.Contains("Rest", StringComparison.OrdinalIgnoreCase));
+            var chosen = preferred ?? buttons[0];
+            _processedRoomKeys.TryAdd(roomKey, 0);
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            Log.Info($"[AiBot] Rest site option: {chosen.Option.GetType().Name}");
+            await UiHelper.Click(chosen);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        if (room.ProceedButton.IsEnabled)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            await UiHelper.Click(room.ProceedButton);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<bool> HandleTreasureAsync(string roomKey, CancellationToken cancellationToken)
+    {
+        var room = GetAbsoluteNodeOrNull<NTreasureRoom>("/root/Game/RootSceneContainer/Run/RoomContainer/TreasureRoom");
+        if (room is null)
+        {
+            return false;
+        }
+
+        if (!_processedRoomKeys.ContainsKey(roomKey))
+        {
+            var chest = room.GetNodeOrNull<NClickableControl>("Chest");
+            if (chest is not null)
+            {
+                _processedRoomKeys.TryAdd(roomKey, 0);
+                await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                Log.Info("[AiBot] Opening treasure chest.");
+                await UiHelper.Click(chest);
+                await WaitForActionQueueToDrainAsync(cancellationToken);
+                ApplyActionCooldown(Config.ScreenActionDelayMs);
+                return true;
+            }
+        }
+
+        var relicHolders = UiHelper.FindAll<NTreasureRoomRelicHolder>(room)
+            .Where(holder => holder.IsEnabled && holder.Visible)
+            .ToList();
+        if (relicHolders.Count > 0)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            Log.Info("[AiBot] Picking treasure relic.");
+            await UiHelper.Click(relicHolders[0]);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        if (room.ProceedButton.IsEnabled)
+        {
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            await UiHelper.Click(room.ProceedButton);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<bool> HandleEventAsync(string roomKey, CancellationToken cancellationToken)
+    {
+        if (NMapScreen.Instance is { IsOpen: true })
+        {
+            return false;
+        }
+
+        var eventRoom = GetAbsoluteNodeOrNull<NEventRoom>("/root/Game/RootSceneContainer/Run/RoomContainer/EventRoom");
+        if (eventRoom is null || !eventRoom.Visible || !eventRoom.IsVisibleInTree())
+        {
+            return false;
+        }
+
+        var options = UiHelper.FindAll<NEventOptionButton>(eventRoom)
+            .Where(button => button.IsEnabled && !button.Option.IsLocked)
+            .ToList();
+        if (options.Count > 0)
+        {
+            var preferred = options.FirstOrDefault(button => !button.Option.IsProceed) ?? options[0];
+            await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+            Log.Info($"[AiBot] Event option selected: {preferred.Option.GetType().Name}");
+            await UiHelper.Click(preferred);
+            await WaitForActionQueueToDrainAsync(cancellationToken);
+            ApplyActionCooldown(Config.ScreenActionDelayMs);
+            return true;
+        }
+
+        if (_processedRoomKeys.TryAdd(roomKey, 0))
+        {
+            var proceed = UiHelper.FindFirst<NProceedButton>(eventRoom);
+            if (proceed is not null && proceed.IsEnabled)
+            {
+                await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                await UiHelper.Click(proceed);
+                await WaitForActionQueueToDrainAsync(cancellationToken);
+                ApplyActionCooldown(Config.ScreenActionDelayMs);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<bool> TryHandleMapAsync(RunState runState, CancellationToken cancellationToken)
+    {
+        if (DecisionEngine is null)
+        {
+            LogThrottled("map-skip-engine", "[AiBot] Map skipped: DecisionEngine is null.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        if (NMapScreen.Instance is null)
+        {
+            LogThrottled("map-skip-instance", "[AiBot] Map skipped: NMapScreen.Instance is null.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        if (!NMapScreen.Instance.IsVisibleInTree())
+        {
+            LogThrottled("map-skip-hidden", $"[AiBot] Map skipped: map not visible. room={runState.CurrentRoom?.RoomType}", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        if (NMapScreen.Instance.IsTraveling)
+        {
+            LogThrottled("map-skip-traveling", "[AiBot] Map skipped: map is traveling.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        var player = LocalContext.GetMe(runState);
+        if (player is null)
+        {
+            LogThrottled("map-skip-player", "[AiBot] Map skipped: local player is null.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        var allMapPoints = UiHelper.FindAll<NMapPoint>(NMapScreen.Instance).ToList();
+        if (allMapPoints.Count == 0)
+        {
+            LogThrottled("map-skip-nodes", "[AiBot] Map skipped: no NMapPoint nodes found.", TimeSpan.FromSeconds(2));
+            return false;
+        }
+
+        var pointLookup = allMapPoints.ToDictionary(point => point.Point.coord, point => point);
+        var travelableNodes = allMapPoints
+            .Where(node => node.State == MapPointState.Travelable)
+            .OrderBy(node => node.Point.coord.row)
+            .ThenBy(node => node.Point.coord.col)
+            .ToList();
+
+        var candidateNodes = ResolveCandidateMapNodes(runState, allMapPoints, pointLookup)
+            .Where(node => node.State == MapPointState.Travelable)
+            .OrderBy(node => node.Point.coord.col)
+            .ToList();
+
+        if (candidateNodes.Count == 0)
+        {
+            candidateNodes = travelableNodes;
+        }
+
+        if (candidateNodes.Count == 0)
+        {
+            if (Config.Logging.Verbose)
+            {
+                Log.Info($"[AiBot] Map skipped: no travelable candidates. Visited={FormatMapCoords(runState.VisitedMapCoords)}, TotalNodes={allMapPoints.Count}");
+            }
+
+            return false;
+        }
+
+        var candidatePoints = candidateNodes.Select(node => node.Point).ToList();
+        var decision = await DecisionEngine.ChooseMapPointAsync(candidatePoints, player.Creature.CurrentHp, player.Creature.MaxHp, player.Gold, GetCurrentAnalysis(), cancellationToken);
+        var node = decision.Point is not null && pointLookup.TryGetValue(decision.Point.coord, out var selectedNode)
+            ? selectedNode
+            : candidateNodes[0];
+
+        if (Config.Logging.Verbose)
+        {
+            Log.Info($"[AiBot] Map state: visited={FormatMapCoords(runState.VisitedMapCoords)}, travelable={FormatMapCoords(travelableNodes.Select(node => node.Point.coord))}, candidates={FormatMapCoords(candidateNodes.Select(node => node.Point.coord))}, selected={node.Point.coord}");
+        }
+
+        var enabled = await WaitUntilAsync(() => node.IsEnabled, TimeSpan.FromSeconds(3), cancellationToken);
+        if (!enabled)
+        {
+            Log.Warn($"[AiBot] Map node not enabled in time: {node.Point.coord}");
+            return false;
+        }
+
+        await WaitForMapActionWindowAsync(cancellationToken);
+        Log.Info($"[AiBot] Map decision: {decision.Reason}");
+        var roomEnteredTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnRoomEntered() => roomEnteredTcs.TrySetResult();
+        RunManager.Instance.RoomEntered += OnRoomEntered;
+        try
+        {
+            await UiHelper.Click(node);
+            try
+            {
+                await roomEnteredTcs.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                Log.Warn($"[AiBot] Map selection timed out waiting for room entry from {node.Point.coord}");
+            }
+        }
+        finally
+        {
+            RunManager.Instance.RoomEntered -= OnRoomEntered;
+        }
+
+        ApplyActionCooldown(Config.MapActionDelayMs);
+        return true;
+    }
+
+    private static List<NMapPoint> ResolveCandidateMapNodes(RunState runState, List<NMapPoint> allMapPoints, Dictionary<MapCoord, NMapPoint> pointLookup)
+    {
+        if (runState.VisitedMapCoords.Count == 0)
+        {
+            return allMapPoints
+                .Where(point => point.Point.coord.row == 0)
+                .OrderBy(point => point.Point.coord.col)
+                .ToList();
+        }
+
+        var lastCoord = runState.VisitedMapCoords[^1];
+        var lastNode = allMapPoints.FirstOrDefault(point => point.Point.coord.Equals(lastCoord));
+        if (lastNode is null)
+        {
+            return new List<NMapPoint>();
+        }
+
+        return lastNode.Point.Children
+            .Select(child => pointLookup.TryGetValue(child.coord, out var childNode) ? childNode : null)
+            .Where(childNode => childNode is not null)
+            .Cast<NMapPoint>()
+            .OrderBy(point => point.Point.coord.col)
+            .ToList();
+    }
+
+    private static bool CanAutoPlayCard(CardModel card)
+    {
+        AbstractModel? preventer;
+        UnplayableReason reason;
+        return card.CanPlay(out reason, out preventer);
+    }
+
+    private static async Task WaitForRuntimeReadyAsync()
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (NRun.Instance is not null && RunManager.Instance.DebugOnlyGetState() is not null)
+            {
+                await Task.Delay(250);
+                return;
+            }
+
+            await Task.Delay(250);
+        }
+    }
+
+    private async Task WaitForActionWindowAsync(int delayMs, CancellationToken cancellationToken)
+    {
+        await WaitForActionQueueToDrainAsync(cancellationToken);
+
+        var remaining = _nextActionAtUtc - DateTime.UtcNow;
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining, cancellationToken);
+        }
+
+        if (delayMs > 0)
+        {
+            await Task.Delay(delayMs, cancellationToken);
+        }
+    }
+
+    private async Task WaitForMapActionWindowAsync(CancellationToken cancellationToken)
+    {
+        var remaining = _nextActionAtUtc - DateTime.UtcNow;
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining, cancellationToken);
+        }
+
+        if (Config.MapActionDelayMs > 0)
+        {
+            await Task.Delay(Config.MapActionDelayMs, cancellationToken);
+        }
+    }
+
+    private static bool IsPotionUsableInCombat(PotionModel potion)
+    {
+        return potion is not null
+            && !potion.IsQueued
+            && !potion.HasBeenRemovedFromState
+            && potion.PassesCustomUsabilityCheck
+            && potion.Usage is PotionUsage.CombatOnly or PotionUsage.AnyTime;
+    }
+
+    private static bool RequiresPotionTarget(PotionModel potion)
+    {
+        return potion.TargetType is TargetType.AnyEnemy or TargetType.AnyAlly or TargetType.AnyPlayer or TargetType.Self or TargetType.TargetedNoCreature;
+    }
+
+    private static Creature? ChoosePotionTarget(PotionModel potion, Player player, IReadOnlyList<Creature> enemies)
+    {
+        return potion.TargetType switch
+        {
+            TargetType.AnyEnemy => enemies.Where(enemy => enemy.IsAlive).OrderBy(enemy => enemy.CurrentHp).FirstOrDefault(),
+            TargetType.AnyAlly or TargetType.AnyPlayer or TargetType.Self => player.Creature,
+            _ => null
+        };
+    }
+
+    private static async Task<bool> TryPurchaseMerchantEntryAsync(MerchantEntry entry, MerchantInventory inventory)
+    {
+        return entry switch
+        {
+            MerchantCardRemovalEntry removalEntry => await removalEntry.OnTryPurchaseWrapper(inventory, false, false),
+            _ => await entry.OnTryPurchaseWrapper(inventory)
+        };
+    }
+
+    private static async Task WaitForActionQueueToDrainAsync(CancellationToken cancellationToken)
+    {
+        var actionExecutor = RunManager.Instance.ActionExecutor;
+        if (actionExecutor is not null)
+        {
+            await actionExecutor.FinishedExecutingActions().WaitAsync(cancellationToken);
+        }
+    }
+
+    private void ApplyActionCooldown(int delayMs)
+    {
+        _nextActionAtUtc = DateTime.UtcNow.AddMilliseconds(Math.Max(0, delayMs));
+    }
+
+    private static async Task<bool> WaitUntilAsync(Func<bool> condition, TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (condition())
+            {
+                return true;
+            }
+
+            await Task.Delay(100, cancellationToken);
+        }
+
+        return condition();
+    }
+
+    private static string FormatMapCoords(IEnumerable<MapCoord> coords)
+    {
+        return string.Join(", ", coords.Select(coord => $"({coord.row},{coord.col})"));
+    }
+
+    private void LogThrottled(string key, string message, TimeSpan interval)
+    {
+        var now = DateTime.UtcNow;
+        if (_logThrottle.TryGetValue(key, out var last) && now - last < interval)
+        {
+            return;
+        }
+
+        _logThrottle[key] = now;
+        Log.Info(message);
+    }
+
+    private static T? GetAbsoluteNodeOrNull<T>(string path) where T : class
+    {
+        var root = ((SceneTree)Engine.GetMainLoop()).Root;
+        return root.GetNodeOrNull(path) as T;
+    }
+
+    private void TryInstallSelector()
+    {
+        DisposeSelector();
+        if (DecisionEngine is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _selectorScope = CardSelectCmd.UseSelector(new AiBotCardSelector(GetCurrentAnalysis, DecisionEngine));
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"[AiBot] Could not install card selector: {ex.Message}");
+        }
+    }
+
+    private void DisposeSelector()
+    {
+        _selectorScope?.Dispose();
+        _selectorScope = null;
+    }
+
+    private void EnsureDecisionPanel()
+    {
+        if (!Config.ShowDecisionPanel)
+        {
+            UpdateDecisionPanelVisibility();
+            return;
+        }
+
+        var root = ((SceneTree)Engine.GetMainLoop()).Root;
+        if (_decisionPanel is null || !GodotObject.IsInstanceValid(_decisionPanel) || _decisionPanel.GetParent() is null)
+        {
+            _decisionPanel = new AiBotDecisionPanel(Config.DecisionPanelMaxEntries)
+            {
+                Name = "AiBotDecisionPanel"
+            };
+            root.AddChild(_decisionPanel);
+        }
+
+        _decisionPanel.Visible = true;
+        _decisionPanel.SetMaxEntries(Config.DecisionPanelMaxEntries);
+    }
+
+    private void UpdateDecisionPanelVisibility()
+    {
+        if (_decisionPanel is not null && GodotObject.IsInstanceValid(_decisionPanel))
+        {
+            _decisionPanel.Visible = Config.ShowDecisionPanel && IsActive;
+        }
+    }
+
+    public void Dispose()
+    {
+        Deactivate();
+        if (DecisionEngine is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+    }
+}

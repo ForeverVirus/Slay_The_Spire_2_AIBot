@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "preferCloud": true,
+  "autoTakeOverNewRun": true,
+  "autoTakeOverContinueRun": true,
+  "pollIntervalMs": 250,
+  "decisionTimeoutSeconds": 20,
+  "screenActionDelayMs": 900,
+  "combatActionDelayMs": 650,
+  "mapActionDelayMs": 1000,
+  "showDecisionPanel": true,
+  "decisionPanelMaxEntries": 16,
+  "provider": {
+    "name": "deepseek",
+    "model": "deepseek-chat",
+    "baseUrl": "https://api.deepseek.com",
+    "apiKey": "sk-9a5ab75bca3f4a86b6136e1c21d25051"
+  },
+  "logging": {
+    "verbose": true,
+    "logDecisionPrompt": false
+  }
+}
