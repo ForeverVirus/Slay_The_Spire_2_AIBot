@@ -6,11 +6,13 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Potions;
+using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using aibot.Scripts.Config;
+using aibot.Scripts.Knowledge;
 
 namespace aibot.Scripts.Decision;
 
@@ -23,10 +25,12 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
 
     private readonly AiBotConfig _config;
     private readonly HttpClient _httpClient;
+    private readonly GuideKnowledgeBase? _knowledgeBase;
 
-    public DeepSeekDecisionEngine(AiBotConfig config)
+    public DeepSeekDecisionEngine(AiBotConfig config, GuideKnowledgeBase? knowledgeBase = null)
     {
         _config = config;
+        _knowledgeBase = knowledgeBase;
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(config.Provider.BaseUrl.TrimEnd('/') + "/")
@@ -113,7 +117,7 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
             "Choose the best card reward for the current STS2 run. Return JSON with fields key and reason.",
             BuildSharedContext(
                 analysis,
-                $"Reward state: card reward options={string.Join(", ", options.Select(card => card.Title))}"),
+                BuildCardRewardStateContext(options, analysis)),
             decisionOptions,
             cancellationToken);
 
@@ -174,7 +178,7 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
             "Choose the best shop purchase in Slay the Spire 2. Return JSON with fields key and reason.",
             BuildSharedContext(
                 analysis,
-                $"Shop state: Gold={currentGold}; HasPotionSlot={hasOpenPotionSlots}; ShopOptions={string.Join(", ", available.Select(DescribeShopEntry))}"),
+                BuildShopStateContext(available, currentGold, hasOpenPotionSlots, analysis)),
             decisionOptions,
             cancellationToken);
 
@@ -190,6 +194,30 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
         return new ShopDecision(selected, $"DeepSeek selected {DescribeShopEntry(selected)}.", new DecisionTrace("Shop", "LLM/DeepSeek", $"Buy {DescribeShopEntry(selected)}", response.Reason));
     }
 
+    public async Task<RestDecision> ChooseRestSiteOptionAsync(Player player, IReadOnlyList<RestSiteOption> options, RunAnalysis analysis, CancellationToken cancellationToken)
+    {
+        var available = options.Where(option => option.IsEnabled).ToList();
+        var decisionOptions = available
+            .Select(option => new DecisionOption(option.OptionId, option.Title.GetFormattedText(), TrimText(option.Description.GetFormattedText(), 120)))
+            .ToList();
+
+        if (decisionOptions.Count == 0)
+        {
+            return new RestDecision(null, "DeepSeek saw no rest-site options.", new DecisionTrace("Rest Site", "LLM/DeepSeek", "No campfire action", "DeepSeek saw no enabled rest site options."));
+        }
+
+        var response = await ChooseOptionAsync(
+            "Choose the best rest-site action in Slay the Spire 2. Weigh current HP, upgrade value, deck weakness, and long-term scaling. Return JSON with fields key and reason.",
+            BuildSharedContext(
+                analysis,
+                BuildRestSiteStateContext(player, available)),
+            decisionOptions,
+            cancellationToken);
+
+        var selected = available.FirstOrDefault(option => option.OptionId == response.Key) ?? available[0];
+        return new RestDecision(selected, $"DeepSeek selected {selected.Title.GetFormattedText()}.", new DecisionTrace("Rest Site", "LLM/DeepSeek", $"Choose {selected.Title.GetFormattedText()}", response.Reason));
+    }
+
     public async Task<MapDecision> ChooseMapPointAsync(IReadOnlyList<MapPoint> options, int currentHp, int maxHp, int gold, RunAnalysis analysis, CancellationToken cancellationToken)
     {
         var decisionOptions = options
@@ -203,7 +231,7 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
 
         var context = BuildSharedContext(
             analysis,
-            $"Map state: Hp={currentHp}/{maxHp}; Gold={gold}; MapOptions={string.Join(", ", options.Select(point => $"{point.PointType}@({point.coord.row},{point.coord.col})"))}");
+            BuildMapStateContext(options, currentHp, maxHp, gold));
         var response = await ChooseOptionAsync(
             "Choose the best next map point in STS2. Prefer a strong but safe path. Return JSON with fields key and reason.",
             context,
@@ -285,6 +313,140 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
         };
     }
 
+    private string BuildCardRewardStateContext(IReadOnlyList<CardModel> options, RunAnalysis analysis)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Reward state:");
+        sb.AppendLine($"Card reward options={options.Count}");
+
+        foreach (var card in options.Take(6))
+        {
+            sb.AppendLine($"- {DescribeCardOption(card, analysis)}");
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private string BuildShopStateContext(IReadOnlyList<MerchantEntry> options, int currentGold, bool hasOpenPotionSlots, RunAnalysis analysis)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Shop state:");
+        sb.AppendLine($"Gold={currentGold}; HasPotionSlot={hasOpenPotionSlots}; AffordableOptions={options.Count}");
+
+        foreach (var entry in options.Take(10))
+        {
+            sb.AppendLine($"- {DescribeShopEntryDetailed(entry, analysis)}");
+        }
+
+        if (options.Any(option => option is MerchantCardRemovalEntry) && !string.IsNullOrWhiteSpace(analysis.RemovalCandidateSummary))
+        {
+            sb.AppendLine("Suggested removal targets:");
+            sb.AppendLine(analysis.RemovalCandidateSummary);
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private static string BuildMapStateContext(IReadOnlyList<MapPoint> options, int currentHp, int maxHp, int gold)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Map state:");
+        sb.AppendLine($"Hp={currentHp}/{maxHp}; Gold={gold}; MapOptions={options.Count}");
+
+        foreach (var point in options.Take(8))
+        {
+            var next = point.Children
+                .GroupBy(child => child.PointType)
+                .OrderBy(group => group.Key.ToString())
+                .Select(group => $"{group.Key}x{group.Count()}");
+
+            var nextSummary = string.Join(", ", next);
+            sb.AppendLine($"- {point.PointType} at ({point.coord.row},{point.coord.col}); next={(string.IsNullOrWhiteSpace(nextSummary) ? "none" : nextSummary)}");
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private static string BuildRestSiteStateContext(Player player, IReadOnlyList<RestSiteOption> options)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Rest-site state:");
+        sb.AppendLine($"Hp={player.Creature.CurrentHp}/{player.Creature.MaxHp}; Options={options.Count}");
+
+        foreach (var option in options.Take(8))
+        {
+            sb.AppendLine($"- key={option.OptionId}; title={option.Title.GetFormattedText()}; text={TrimText(option.Description.GetFormattedText(), 140)}");
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private string DescribeCardOption(CardModel card, RunAnalysis analysis)
+    {
+        var guide = _knowledgeBase?.FindCard(card.Title, analysis.CharacterId);
+        var keywords = JoinNames(card.Keywords.Select(keyword => keyword.ToString()), 4);
+        var tags = JoinNames(card.Tags.Select(tag => tag.ToString()), 4);
+        var cost = card.EnergyCost.CostsX ? "X" : card.EnergyCost.GetAmountToSpend().ToString();
+        var description = TrimText(card.GetDescriptionForPile(PileType.Deck), 140);
+        var guideNote = guide is null ? string.Empty : TrimText(guide.DescriptionEn, 110);
+
+        return $"{card.Title}; type={card.Type}; rarity={card.Rarity}; cost={cost}; upgraded={card.IsUpgraded}; keywords={(string.IsNullOrWhiteSpace(keywords) ? "none" : keywords)}; tags={(string.IsNullOrWhiteSpace(tags) ? "none" : tags)}; text={description}{(string.IsNullOrWhiteSpace(guideNote) ? string.Empty : $"; guide={guideNote}")}";
+    }
+
+    private string DescribeShopEntryDetailed(MerchantEntry entry, RunAnalysis analysis)
+    {
+        return entry switch
+        {
+            MerchantCardEntry cardEntry when cardEntry.CreationResult?.Card is not null => $"card; gold={entry.Cost}; {DescribeCardOption(cardEntry.CreationResult.Card, analysis)}",
+            MerchantRelicEntry relicEntry when relicEntry.Model is not null => DescribeRelicEntryDetailed(relicEntry, analysis),
+            MerchantPotionEntry potionEntry when potionEntry.Model is not null => DescribePotionEntryDetailed(potionEntry),
+            MerchantCardRemovalEntry => $"card removal; gold={entry.Cost}; use this only if trimming weak cards is worth more than saving gold",
+            _ => $"shop item; gold={entry.Cost}"
+        };
+    }
+
+    private string DescribeRelicEntryDetailed(MerchantRelicEntry entry, RunAnalysis analysis)
+    {
+        var model = entry.Model;
+        if (model is null)
+        {
+            return $"relic; gold={entry.Cost}";
+        }
+
+        var guide = _knowledgeBase?.FindRelic(model.Title.GetFormattedText(), analysis.CharacterId);
+        var relicText = TrimText(model.DynamicDescription.GetFormattedText(), 140);
+        var guideNote = guide is null ? string.Empty : TrimText(guide.DescriptionEn, 110);
+        return $"relic {model.Title.GetFormattedText()}; gold={entry.Cost}; text={relicText}{(string.IsNullOrWhiteSpace(guideNote) ? string.Empty : $"; guide={guideNote}")}";
+    }
+
+    private static string DescribePotionEntryDetailed(MerchantPotionEntry entry)
+    {
+        var model = entry.Model;
+        if (model is null)
+        {
+            return $"potion; gold={entry.Cost}";
+        }
+
+        var text = TrimText(model.DynamicDescription.GetFormattedText(), 140);
+        return $"potion {model.Title.GetFormattedText()}; gold={entry.Cost}; usage={model.Usage}; target={model.TargetType}; text={text}";
+    }
+
+    private static string JoinNames(IEnumerable<string> values, int maxCount)
+    {
+        return string.Join(", ", values.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().Take(maxCount));
+    }
+
+    private static string TrimText(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = value.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength].TrimEnd() + "...";
+    }
+
     private static string BuildSharedContext(RunAnalysis analysis, string stateContext)
     {
         var sb = new StringBuilder();
@@ -355,6 +517,24 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
         {
             sb.AppendLine("Recent Route History:");
             sb.AppendLine(analysis.RecentHistorySummary);
+        }
+
+        if (!string.IsNullOrWhiteSpace(analysis.StrategicNeedsSummary))
+        {
+            sb.AppendLine("Strategic Needs:");
+            sb.AppendLine(analysis.StrategicNeedsSummary);
+        }
+
+        if (!string.IsNullOrWhiteSpace(analysis.DeckStructureSummary))
+        {
+            sb.AppendLine("Deck Structure:");
+            sb.AppendLine(analysis.DeckStructureSummary);
+        }
+
+        if (!string.IsNullOrWhiteSpace(analysis.RemovalCandidateSummary))
+        {
+            sb.AppendLine("Removal Candidates:");
+            sb.AppendLine(analysis.RemovalCandidateSummary);
         }
 
         sb.AppendLine("Current State:");

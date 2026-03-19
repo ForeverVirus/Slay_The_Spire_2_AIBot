@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
@@ -114,6 +115,24 @@ public sealed class HybridDecisionEngine : IAiDecisionEngine, IDisposable
         return Publish(await _heuristic.ChooseShopPurchaseAsync(options, currentGold, hasOpenPotionSlots, analysis, cancellationToken));
     }
 
+    public async Task<RestDecision> ChooseRestSiteOptionAsync(Player player, IReadOnlyList<RestSiteOption> options, RunAnalysis analysis, CancellationToken cancellationToken)
+    {
+        if (_config.CanUseCloud && _cloud is not null)
+        {
+            try
+            {
+                return Publish(await _cloud.ChooseRestSiteOptionAsync(player, options, analysis, cancellationToken));
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"[AiBot] Cloud decision failed. Falling back to heuristics. {ex.Message}");
+                return Publish(AnnotateFallback(await _heuristic.ChooseRestSiteOptionAsync(player, options, analysis, cancellationToken), ex.Message));
+            }
+        }
+
+        return Publish(await _heuristic.ChooseRestSiteOptionAsync(player, options, analysis, cancellationToken));
+    }
+
     public async Task<MapDecision> ChooseMapPointAsync(IReadOnlyList<MapPoint> options, int currentHp, int maxHp, int gold, RunAnalysis analysis, CancellationToken cancellationToken)
     {
         if (_config.CanUseCloud && _cloud is not null)
@@ -192,6 +211,16 @@ public sealed class HybridDecisionEngine : IAiDecisionEngine, IDisposable
         };
     }
 
+    private static RestDecision AnnotateFallback(RestDecision decision, string errorMessage)
+    {
+        return decision with
+        {
+            Trace = decision.Trace is null
+                ? new DecisionTrace("Rest Site", "Local/Fallback", decision.Reason, $"Cloud decision failed and local heuristic was used instead. Error: {errorMessage}")
+                : decision.Trace with { Source = "Local/Fallback", Details = $"{decision.Trace.Details} Cloud fallback reason: {errorMessage}" }
+        };
+    }
+
     private static PotionDecision Publish(PotionDecision decision)
     {
         if (decision.Trace is not null)
@@ -243,6 +272,16 @@ public sealed class HybridDecisionEngine : IAiDecisionEngine, IDisposable
     }
 
     private static ShopDecision Publish(ShopDecision decision)
+    {
+        if (decision.Trace is not null)
+        {
+            AiBotDecisionFeed.Publish(decision.Trace);
+        }
+
+        return decision;
+    }
+
+    private static RestDecision Publish(RestDecision decision)
     {
         if (decision.Trace is not null)
         {

@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.Entities.Relics;
+using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
@@ -111,6 +112,26 @@ public sealed class GuideHeuristicDecisionEngine : IAiDecisionEngine
         }
 
         return Task.FromResult(new ShopDecision(best.Entry, $"Local heuristic selected {DescribeShopEntry(best.Entry)}.", new DecisionTrace("Shop", "Local", $"Buy {DescribeShopEntry(best.Entry)}", $"Local heuristic chose {DescribeShopEntry(best.Entry)} with score {best.Score} while holding {currentGold} gold.")));
+    }
+
+    public Task<RestDecision> ChooseRestSiteOptionAsync(Player player, IReadOnlyList<RestSiteOption> options, RunAnalysis analysis, CancellationToken cancellationToken)
+    {
+        var best = options
+            .Where(option => option.IsEnabled)
+            .Select(option => new
+            {
+                Option = option,
+                Score = ScoreRestSiteOption(option, player, analysis)
+            })
+            .OrderByDescending(x => x.Score)
+            .FirstOrDefault();
+
+        if (best is null)
+        {
+            return Task.FromResult(new RestDecision(null, "No enabled rest site options.", new DecisionTrace("Rest Site", "Local", "No campfire action", "No enabled rest site options were available.")));
+        }
+
+        return Task.FromResult(new RestDecision(best.Option, $"Local heuristic selected {best.Option.Title.GetFormattedText()}.", new DecisionTrace("Rest Site", "Local", $"Choose {best.Option.Title.GetFormattedText()}", $"Local heuristic chose {best.Option.OptionId} with score {best.Score} at HP {player.Creature.CurrentHp}/{player.Creature.MaxHp}.")));
     }
 
     public Task<MapDecision> ChooseMapPointAsync(IReadOnlyList<MapPoint> options, int currentHp, int maxHp, int gold, RunAnalysis analysis, CancellationToken cancellationToken)
@@ -276,6 +297,34 @@ public sealed class GuideHeuristicDecisionEngine : IAiDecisionEngine
         if (entry.Cost >= currentGold)
         {
             score -= 20;
+        }
+
+        return score;
+    }
+
+    private static int ScoreRestSiteOption(RestSiteOption option, Player player, RunAnalysis analysis)
+    {
+        var healthRatio = player.Creature.MaxHp <= 0 ? 1f : player.Creature.CurrentHp / (float)player.Creature.MaxHp;
+        var optionId = option.OptionId.ToLowerInvariant();
+        var score = 0;
+
+        if (optionId.Contains("heal") || optionId.Contains("rest"))
+        {
+            score += healthRatio < 0.45f ? 220 : healthRatio < 0.65f ? 130 : 40;
+        }
+
+        if (optionId.Contains("smith"))
+        {
+            score += healthRatio > 0.60f ? 180 : 85;
+            if (!string.IsNullOrWhiteSpace(analysis.StrategicNeedsSummary) && analysis.StrategicNeedsSummary.Contains("Upgrades still have high value", StringComparison.OrdinalIgnoreCase))
+            {
+                score += 40;
+            }
+        }
+
+        if (optionId.Contains("dig") || optionId.Contains("lift") || optionId.Contains("cook") || optionId.Contains("clone") || optionId.Contains("hatch") || optionId.Contains("mend"))
+        {
+            score += healthRatio > 0.72f ? 160 : 95;
         }
 
         return score;

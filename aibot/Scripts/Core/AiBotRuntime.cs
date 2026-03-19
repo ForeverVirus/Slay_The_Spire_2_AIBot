@@ -85,7 +85,7 @@ public sealed class AiBotRuntime : IDisposable
         StateAnalyzer = new AiBotStateAnalyzer(KnowledgeBase);
 
         var heuristic = new GuideHeuristicDecisionEngine(KnowledgeBase);
-        DeepSeekDecisionEngine? cloud = Config.CanUseCloud ? new DeepSeekDecisionEngine(Config) : null;
+        DeepSeekDecisionEngine? cloud = Config.CanUseCloud ? new DeepSeekDecisionEngine(Config, KnowledgeBase) : null;
         DecisionEngine = new HybridDecisionEngine(Config, heuristic, cloud);
 
         IsInitialized = true;
@@ -122,7 +122,7 @@ public sealed class AiBotRuntime : IDisposable
         var runState = RunManager.Instance.DebugOnlyGetState();
         if (runState is null || StateAnalyzer is null)
         {
-            return new RunAnalysis(0, "Unknown", "Generalist", string.Empty, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+            return new RunAnalysis(0, "Unknown", "Generalist", string.Empty, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(), string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
         }
 
         CurrentAnalysis = StateAnalyzer.Analyze(runState);
@@ -560,14 +560,16 @@ public sealed class AiBotRuntime : IDisposable
             }
 
             var player = LocalContext.GetMe(runState);
-            var healthRatio = player is null ? 1f : player.Creature.CurrentHp / (float)Math.Max(1, player.Creature.MaxHp);
-            var preferred = healthRatio < 0.5f
-                ? buttons.FirstOrDefault(button => button.Option.GetType().Name.Contains("Rest", StringComparison.OrdinalIgnoreCase) || button.Option.GetType().Name.Contains("Sleep", StringComparison.OrdinalIgnoreCase))
-                : buttons.FirstOrDefault(button => !button.Option.GetType().Name.Contains("Rest", StringComparison.OrdinalIgnoreCase));
-            var chosen = preferred ?? buttons[0];
+            var options = buttons.Select(button => button.Option).ToList();
+            var decision = player is null || DecisionEngine is null
+                ? new RestDecision(options.FirstOrDefault(), "Fallback rest-site choice.")
+                : await DecisionEngine.ChooseRestSiteOptionAsync(player, options, GetCurrentAnalysis(), cancellationToken);
+            var chosen = decision.Option is not null
+                ? buttons.FirstOrDefault(button => button.Option.OptionId == decision.Option.OptionId) ?? buttons[0]
+                : buttons[0];
             _processedRoomKeys.TryAdd(roomKey, 0);
             await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
-            Log.Info($"[AiBot] Rest site option: {chosen.Option.GetType().Name}");
+            Log.Info($"[AiBot] Rest site option: {chosen.Option.GetType().Name}. {decision.Reason}");
             await UiHelper.Click(chosen);
             await WaitForActionQueueToDrainAsync(cancellationToken);
             ApplyActionCooldown(Config.ScreenActionDelayMs);

@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
@@ -56,6 +57,9 @@ public sealed class AiBotStateAnalyzer
         var combatSummary = BuildCombatSummary(player);
         var enemySummary = BuildEnemySummary(player);
         var recentHistorySummary = BuildRecentHistorySummary(runState);
+        var strategicNeedsSummary = BuildStrategicNeedsSummary(player, runState);
+        var deckStructureSummary = BuildDeckStructureSummary(player);
+        var removalCandidateSummary = BuildRemovalCandidateSummary(player);
 
         return new RunAnalysis(
             characterId,
@@ -74,7 +78,10 @@ public sealed class AiBotStateAnalyzer
             playerStateSummary,
             combatSummary,
             enemySummary,
-            recentHistorySummary);
+            recentHistorySummary,
+            strategicNeedsSummary,
+            deckStructureSummary,
+            removalCandidateSummary);
     }
 
     private int ResolveCharacterId(CharacterModel character)
@@ -220,6 +227,78 @@ public sealed class AiBotStateAnalyzer
         return string.Join("\n", recent);
     }
 
+    private static string BuildStrategicNeedsSummary(Player player, RunState? runState)
+    {
+        var cards = player.Deck.Cards.ToList();
+        if (cards.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var size = cards.Count;
+        var attacks = cards.Count(card => card.Type == CardType.Attack);
+        var skills = cards.Count(card => card.Type == CardType.Skill);
+        var powers = cards.Count(card => card.Type == CardType.Power);
+        var upgraded = cards.Count(card => card.IsUpgraded);
+        var removableWeak = cards.Count(card => card.IsRemovable && (card.IsBasicStrikeOrDefend || card.Type is CardType.Curse or CardType.Status));
+        var blockCards = cards.Count(card => card.GainsBlock || card.Tags.Contains(CardTag.Defend));
+        var zeroCost = cards.Count(card => !card.EnergyCost.CostsX && card.EnergyCost.GetAmountToSpend() == 0);
+        var highCost = cards.Count(card => card.EnergyCost.CostsX || card.EnergyCost.GetAmountToSpend() >= 2);
+        var healthRatio = player.Creature.MaxHp <= 0 ? 1f : player.Creature.CurrentHp / (float)player.Creature.MaxHp;
+        var needs = new List<string>();
+
+        if (healthRatio < 0.45f)
+        {
+            needs.Add($"Survival is urgent: hp is only {player.Creature.CurrentHp}/{player.Creature.MaxHp}, so favor healing, safer routes, and immediate defense.");
+        }
+        else if (healthRatio < 0.65f)
+        {
+            needs.Add($"Survival matters: hp is {player.Creature.CurrentHp}/{player.Creature.MaxHp}, so balance greed with safety.");
+        }
+
+        if (blockCards < Math.Max(3, size / 4))
+        {
+            needs.Add("Deck likely needs more reliable defense or mitigation because block density is low.");
+        }
+
+        if (attacks < Math.Max(4, size / 5))
+        {
+            needs.Add("Deck may need better frontloaded damage to finish fights before taking too much chip damage.");
+        }
+
+        if (powers == 0 && size >= 14)
+        {
+            needs.Add("Deck appears light on scaling; strong long-fight payoffs or snowball relics would help.");
+        }
+
+        if (highCost > zeroCost + 3)
+        {
+            needs.Add("Energy curve looks clunky; prioritize cheaper cards, energy support, or draw/filtering.");
+        }
+
+        if (removableWeak >= 4)
+        {
+            needs.Add("Card removal is valuable because the deck still has several weak removable cards.");
+        }
+
+        if (upgraded < Math.Max(2, size / 5))
+        {
+            needs.Add("Upgrades still have high value because a relatively small share of the deck is upgraded.");
+        }
+
+        if (skills > attacks + 4)
+        {
+            needs.Add("Deck is skill-heavy; be careful not to become too slow or too passive without enough damage output.");
+        }
+
+        if (runState is not null)
+        {
+            needs.Add($"Run context: act={runState.CurrentActIndex + 1}, floor={runState.TotalFloor}, currentRoom={runState.CurrentRoom?.RoomType}.");
+        }
+
+        return string.Join("\n", needs.Distinct().Take(8));
+    }
+
     private static string SummarizePowers(IReadOnlyList<PowerModel> powers, int maxCount)
     {
         if (powers.Count == 0)
@@ -239,5 +318,155 @@ public sealed class AiBotStateAnalyzer
 
         var trimmed = value.Replace('\r', ' ').Replace('\n', ' ').Trim();
         return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength].TrimEnd() + "...";
+    }
+
+    private static string BuildDeckStructureSummary(Player player)
+    {
+        var cards = player.Deck.Cards.ToList();
+        if (cards.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var attackCount = cards.Count(card => card.Type == CardType.Attack);
+        var skillCount = cards.Count(card => card.Type == CardType.Skill);
+        var powerCount = cards.Count(card => card.Type == CardType.Power);
+        var statusCount = cards.Count(card => card.Type == CardType.Status);
+        var curseCount = cards.Count(card => card.Type == CardType.Curse);
+        var upgradedCount = cards.Count(card => card.IsUpgraded);
+        var basicCount = cards.Count(card => card.Rarity == CardRarity.Basic);
+        var strikeCount = cards.Count(card => card.Tags.Contains(CardTag.Strike));
+        var defendCount = cards.Count(card => card.Tags.Contains(CardTag.Defend));
+        var zeroCostCount = cards.Count(card => !card.EnergyCost.CostsX && card.EnergyCost.GetAmountToSpend() == 0);
+        var highCostCount = cards.Count(card => card.EnergyCost.CostsX || card.EnergyCost.GetAmountToSpend() >= 2);
+        var retainCount = cards.Count(card => card.Keywords.Contains(CardKeyword.Retain));
+        var exhaustCount = cards.Count(card => card.Keywords.Contains(CardKeyword.Exhaust));
+        var etherealCount = cards.Count(card => card.Keywords.Contains(CardKeyword.Ethereal));
+        var unplayableCount = cards.Count(card => card.Keywords.Contains(CardKeyword.Unplayable));
+        var blockCount = cards.Count(card => card.GainsBlock);
+        var avgCost = cards.Where(card => !card.EnergyCost.CostsX).DefaultIfEmpty().Average(card => card is null ? 0 : card.EnergyCost.GetAmountToSpend());
+
+        return $"DeckComposition: size={cards.Count}; attack={attackCount}; skill={skillCount}; power={powerCount}; status={statusCount}; curse={curseCount}; upgraded={upgradedCount}; basic={basicCount}; strikes={strikeCount}; defends={defendCount}; zeroCost={zeroCostCount}; highCost={highCostCount}; blockCards={blockCount}; retain={retainCount}; exhaust={exhaustCount}; ethereal={etherealCount}; unplayable={unplayableCount}; avgCost={avgCost:F2}";
+    }
+
+    private static string BuildRemovalCandidateSummary(Player player)
+    {
+        var candidates = player.Deck.Cards
+            .Where(card => card.IsRemovable)
+            .Select(card => new
+            {
+                Card = card,
+                Score = ScoreRemovalCandidate(card),
+                Reason = ExplainRemovalCandidate(card)
+            })
+            .OrderByDescending(entry => entry.Score)
+            .ThenBy(entry => entry.Card.EnergyCost.CostsX ? 99 : entry.Card.EnergyCost.GetAmountToSpend())
+            .ThenBy(entry => entry.Card.Title)
+            .Take(5)
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return string.Join("\n", candidates.Select(entry =>
+            $"- {entry.Card.Title}: removeScore={entry.Score}; rarity={entry.Card.Rarity}; type={entry.Card.Type}; cost={(entry.Card.EnergyCost.CostsX ? "X" : entry.Card.EnergyCost.GetAmountToSpend())}; upgraded={entry.Card.IsUpgraded}; reason={entry.Reason}; text={TrimText(entry.Card.GetDescriptionForPile(PileType.Deck), 110)}"));
+    }
+
+    private static int ScoreRemovalCandidate(CardModel card)
+    {
+        if (!card.IsRemovable)
+        {
+            return int.MinValue;
+        }
+
+        var score = 0;
+        switch (card.Type)
+        {
+            case CardType.Curse:
+                score += 200;
+                break;
+            case CardType.Status:
+                score += 170;
+                break;
+            case CardType.Skill when card.Tags.Contains(CardTag.Defend) && card.Rarity == CardRarity.Basic:
+                score += 95;
+                break;
+            case CardType.Attack when card.Tags.Contains(CardTag.Strike) && card.Rarity == CardRarity.Basic:
+                score += 100;
+                break;
+        }
+
+        if (card.Keywords.Contains(CardKeyword.Unplayable))
+        {
+            score += 120;
+        }
+
+        if (card.Keywords.Contains(CardKeyword.Ethereal))
+        {
+            score += 20;
+        }
+
+        if (!card.IsUpgraded)
+        {
+            score += 10;
+        }
+
+        if (card.EnergyCost.CostsX)
+        {
+            score += 15;
+        }
+        else if (card.EnergyCost.GetAmountToSpend() >= 2)
+        {
+            score += 25;
+        }
+
+        if (card.Rarity == CardRarity.Basic)
+        {
+            score += 20;
+        }
+
+        if (card.Rarity == CardRarity.Rare)
+        {
+            score -= 40;
+        }
+
+        if (card.Type == CardType.Power)
+        {
+            score -= 20;
+        }
+
+        return score;
+    }
+
+    private static string ExplainRemovalCandidate(CardModel card)
+    {
+        if (card.Type == CardType.Curse)
+        {
+            return "curse card usually lowers deck quality";
+        }
+
+        if (card.Type == CardType.Status)
+        {
+            return "status card usually adds low-value draws";
+        }
+
+        if (card.Keywords.Contains(CardKeyword.Unplayable))
+        {
+            return "unplayable card clogs draws";
+        }
+
+        if (card.IsBasicStrikeOrDefend)
+        {
+            return "basic strike/defend tends to be the weakest long-term card";
+        }
+
+        if (card.EnergyCost.CostsX || card.EnergyCost.GetAmountToSpend() >= 2)
+        {
+            return "expensive card may be clunky if payoff is low";
+        }
+
+        return "candidate for trimming if stronger synergy cards are available";
     }
 }
