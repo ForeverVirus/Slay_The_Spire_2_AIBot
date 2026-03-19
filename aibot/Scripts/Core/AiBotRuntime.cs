@@ -429,7 +429,7 @@ public sealed class AiBotRuntime : IDisposable
             case RoomType.Boss:
                 return await HandleCombatRoomAsync(roomKey, cancellationToken);
             case RoomType.Shop:
-                return await HandleShopAsync(cancellationToken);
+                return await HandleShopAsync(roomKey, cancellationToken);
             case RoomType.RestSite:
                 return await HandleRestSiteAsync(roomKey, runState, cancellationToken);
             case RoomType.Treasure:
@@ -463,7 +463,7 @@ public sealed class AiBotRuntime : IDisposable
         return true;
     }
 
-    private async Task<bool> HandleShopAsync(CancellationToken cancellationToken)
+    private async Task<bool> HandleShopAsync(string roomKey, CancellationToken cancellationToken)
     {
         if (DecisionEngine is null)
         {
@@ -485,6 +485,21 @@ public sealed class AiBotRuntime : IDisposable
 
         if (!room.Inventory.IsOpen)
         {
+            if (_processedRoomKeys.ContainsKey(roomKey))
+            {
+                if (room.ProceedButton is not null && room.ProceedButton.IsEnabled)
+                {
+                    await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
+                    Log.Info("[AiBot] Leaving shop after finishing purchases.");
+                    await UiHelper.Click(room.ProceedButton);
+                    await WaitForActionQueueToDrainAsync(cancellationToken);
+                    ApplyActionCooldown(Config.ScreenActionDelayMs);
+                    return true;
+                }
+
+                return false;
+            }
+
             if (room.MerchantButton is not null && room.MerchantButton.IsEnabled)
             {
                 await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
@@ -533,6 +548,7 @@ public sealed class AiBotRuntime : IDisposable
         {
             await WaitForActionWindowAsync(Config.ScreenActionDelayMs, cancellationToken);
             Log.Info($"[AiBot] Shop decision: {decision.Reason}");
+            _processedRoomKeys.TryAdd(roomKey, 0);
             await UiHelper.Click(backButton);
             ApplyActionCooldown(Config.ScreenActionDelayMs);
             return true;
