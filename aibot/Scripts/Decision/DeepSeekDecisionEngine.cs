@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.Events.Custom.CrystalSphereEvent;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using aibot.Scripts.Config;
 using aibot.Scripts.Knowledge;
@@ -791,8 +792,37 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
         var incomingDamage = EstimateIncomingDamage(enemies, allies);
         var turnNumber = player.Creature.CombatState?.RoundNumber ?? 1;
         var hpPercent = player.Creature.MaxHp > 0 ? player.Creature.CurrentHp * 100 / player.Creature.MaxHp : 100;
+
+        // Calculate orb passive effects that trigger at end of turn
+        var orbPassive = CalculateOrbPassiveEffects(combat);
+        var effectiveBlock = currentBlock + orbPassive.FrostBlock;
+        var blockDeficit = Math.Max(0, incomingDamage - effectiveBlock);
+
         sb.AppendLine($"Turn={turnNumber}; PlayerHp={player.Creature.CurrentHp}/{player.Creature.MaxHp} ({hpPercent}%); Block={currentBlock}; Energy={combat?.Energy ?? 0}/{combat?.MaxEnergy ?? 0}; PlayableActions={actionOptions.Count}");
         sb.AppendLine($"IncomingDamage={incomingDamage}; CurrentBlock={currentBlock}; UnblockedDamage={Math.Max(0, incomingDamage - currentBlock)}");
+
+        // Show orb passive contributions if any
+        if (orbPassive.FrostBlock > 0 || orbPassive.LightningDamage > 0 || orbPassive.DarkGrowth > 0 || orbPassive.GlassDamage > 0)
+        {
+            sb.AppendLine("END-OF-TURN ORB PASSIVES (automatic, no energy cost):");
+            if (orbPassive.FrostBlock > 0)
+            {
+                sb.AppendLine($"- Frost orbs will grant +{orbPassive.FrostBlock} block at end of turn (from {orbPassive.FrostCount} Frost orb(s)). Effective total block = {effectiveBlock}. You only need {blockDeficit} more block from cards to fully cover incoming damage.");
+            }
+            if (orbPassive.LightningDamage > 0)
+            {
+                sb.AppendLine($"- Lightning orbs will deal {orbPassive.LightningDamage} damage to random enemies at end of turn (from {orbPassive.LightningCount} Lightning orb(s)). Factor this into lethal calculations.");
+            }
+            if (orbPassive.DarkGrowth > 0)
+            {
+                sb.AppendLine($"- Dark orbs will grow evoke value by +{orbPassive.DarkGrowth} at end of turn (from {orbPassive.DarkCount} Dark orb(s)).");
+            }
+            if (orbPassive.GlassDamage > 0)
+            {
+                sb.AppendLine($"- Glass orbs will deal {orbPassive.GlassDamage} damage to ALL enemies at end of turn (from {orbPassive.GlassCount} Glass orb(s)). Factor this into lethal calculations.");
+            }
+        }
+
         sb.AppendLine($"StrategicNeeds={TrimText(analysis.StrategicNeedsSummary, 220)}");
 
         // Enemy roster with per-enemy details
@@ -809,19 +839,25 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
             }
         }
 
-        // Lethal opportunity detection
+        // Lethal opportunity detection (include Lightning + Glass passive damage)
+        var lightningPassive = orbPassive.LightningDamage;
+        var glassPassive = orbPassive.GlassDamage;
         var lethalTargets = aliveEnemies
-            .Where(enemy => enemy.CurrentHp <= EstimateAvailableDamage(actionOptions, enemy))
+            .Where(enemy => enemy.CurrentHp <= EstimateAvailableDamage(actionOptions, enemy) + glassPassive + (aliveEnemies.Count == 1 ? lightningPassive : lightningPassive / Math.Max(aliveEnemies.Count, 1)))
             .Select(enemy => enemy.Name)
             .ToList();
         if (lethalTargets.Count > 0)
         {
-            sb.AppendLine($"LETHAL OPPORTUNITY: You can likely kill {string.Join(", ", lethalTargets)} this turn. Prioritize finishing them to remove their threat permanently.");
+            sb.AppendLine($"LETHAL OPPORTUNITY: You can likely kill {string.Join(", ", lethalTargets)} this turn (including end-of-turn orb passives). Prioritize finishing them to remove their threat permanently.");
         }
 
-        if (incomingDamage > 0 && currentBlock < incomingDamage)
+        if (incomingDamage > 0 && effectiveBlock < incomingDamage)
         {
-            sb.AppendLine($"WARNING: You will take {incomingDamage - currentBlock} damage if you do not gain at least {incomingDamage - currentBlock} more block this turn. Spending energy on block cards to prevent this HP loss is almost always correct.");
+            sb.AppendLine($"WARNING: You will take {incomingDamage - effectiveBlock} damage after Frost passive block. You need {blockDeficit} more block from cards to fully cover incoming damage.");
+        }
+        else if (incomingDamage > 0 && effectiveBlock >= incomingDamage && currentBlock < incomingDamage)
+        {
+            sb.AppendLine($"FROST COVERAGE: Your {orbPassive.FrostCount} Frost orb(s) will passively grant +{orbPassive.FrostBlock} block at end of turn, which combined with your current {currentBlock} block covers all {incomingDamage} incoming damage. You do NOT need to play additional block cards for defense — spend energy on offense, scaling, or draw instead.");
         }
 
         if (combat is not null)
@@ -866,11 +902,15 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
 
         if (combat?.OrbQueue.Capacity > 0)
         {
-            sb.AppendLine("Tactical reminder: for orb cards, evaluate both the card text and the immediate orb consequences this turn, including passive damage, evoke damage, and whether channeling into full slots triggers an orb right now.");
+            sb.AppendLine("Tactical reminder: for orb cards, evaluate both the card text AND the orb consequences. Channeling into full slots evokes the leftmost orb immediately. Frost/Lightning/Dark orbs also trigger passively at end of turn (already calculated above).");
         }
-        if (incomingDamage > 0)
+        if (incomingDamage > 0 && blockDeficit > 0)
         {
-            sb.AppendLine($"Block priority: enemies will deal {incomingDamage} total damage this turn. You have {currentBlock} block. Use block cards to cover the remaining {Math.Max(0, incomingDamage - currentBlock)} unblocked damage before spending energy on offense, unless an offensive play wins the fight outright.");
+            sb.AppendLine($"Block priority: enemies deal {incomingDamage} total. After current block ({currentBlock}) + Frost passive (+{orbPassive.FrostBlock}), you still need {blockDeficit} more block from cards. Prioritize block cards for this deficit before spending energy on offense.");
+        }
+        else if (incomingDamage > 0 && blockDeficit <= 0)
+        {
+            sb.AppendLine($"Block is SUFFICIENT: current block ({currentBlock}) + Frost passive (+{orbPassive.FrostBlock}) >= incoming damage ({incomingDamage}). Spend all energy on offense, scaling, or draw — do NOT waste energy on extra block cards.");
         }
         else if (aliveEnemies.Count > 0)
         {
@@ -1277,6 +1317,62 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
             Log.Warn($"[AiBot] Failed to format localized text for {context}: {ex.Message}");
             return fallback;
         }
+    }
+
+    private sealed record OrbPassiveEffects(int FrostBlock, int FrostCount, int LightningDamage, int LightningCount, int DarkGrowth, int DarkCount, int GlassDamage, int GlassCount);
+
+    private static OrbPassiveEffects CalculateOrbPassiveEffects(PlayerCombatState? combat)
+    {
+        if (combat is null || combat.OrbQueue.Orbs.Count == 0)
+        {
+            return new OrbPassiveEffects(0, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        var frostBlock = 0;
+        var frostCount = 0;
+        var lightningDamage = 0;
+        var lightningCount = 0;
+        var darkGrowth = 0;
+        var darkCount = 0;
+        var glassDamage = 0;
+        var glassCount = 0;
+
+        foreach (var orb in combat.OrbQueue.Orbs)
+        {
+            try
+            {
+                if (orb is FrostOrb)
+                {
+                    frostBlock += (int)orb.PassiveVal;
+                    frostCount++;
+                }
+                else if (orb is LightningOrb)
+                {
+                    lightningDamage += (int)orb.PassiveVal;
+                    lightningCount++;
+                }
+                else if (orb is DarkOrb)
+                {
+                    darkGrowth += (int)orb.PassiveVal;
+                    darkCount++;
+                }
+                else if (orb is GlassOrb)
+                {
+                    var passiveVal = (int)orb.PassiveVal;
+                    if (passiveVal > 0)
+                    {
+                        glassDamage += passiveVal;
+                        glassCount++;
+                    }
+                }
+            }
+            catch
+            {
+                // Orb value calculation can fail with certain modifiers; skip safely.
+            }
+        }
+
+        return new OrbPassiveEffects(frostBlock, frostCount, lightningDamage, lightningCount, darkGrowth, darkCount, glassDamage, glassCount);
     }
 
     private static int EstimateIncomingDamage(IReadOnlyList<Creature> enemies, IReadOnlyList<Creature>? allies)
