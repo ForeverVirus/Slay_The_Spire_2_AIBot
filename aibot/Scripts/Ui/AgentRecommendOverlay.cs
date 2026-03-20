@@ -13,12 +13,16 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Events;
+using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using MegaCrit.Sts2.Core.Nodes.Relics;
+using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
@@ -168,8 +172,14 @@ public sealed partial class AgentRecommendOverlay : CanvasLayer
         {
             case NCardRewardSelectionScreen rewardScreen:
                 return await RefreshCardRewardRecommendationAsync(rewardScreen);
+            case NChooseABundleSelectionScreen bundleScreen:
+                return await RefreshBundleRecommendationAsync(bundleScreen);
             case NChooseARelicSelection relicScreen:
                 return await RefreshRelicRecommendationAsync(relicScreen);
+            case NCrystalSphereScreen crystalSphereScreen:
+                return await RefreshCrystalSphereRecommendationAsync(crystalSphereScreen);
+            case NRewardsScreen rewardsScreen:
+                return await RefreshRewardsRecommendationAsync(rewardsScreen);
             default:
                 return false;
         }
@@ -232,6 +242,100 @@ public sealed partial class AgentRecommendOverlay : CanvasLayer
         }
 
         ReplaceWithSingleBadge(target, decision.Reason, "遗物推荐");
+        return true;
+    }
+
+    private async Task<bool> RefreshBundleRecommendationAsync(NChooseABundleSelectionScreen screen)
+    {
+        if (_runtime?.DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var bundles = UiHelper.FindAll<NCardBundle>(screen)
+            .Select((bundle, index) => new { Bundle = bundle, Index = index })
+            .Where(entry => entry.Bundle.Bundle is { Count: > 0 } && entry.Bundle.IsVisibleInTree())
+            .ToList();
+        if (bundles.Count == 0)
+        {
+            return false;
+        }
+
+        var context = new AiCardSelectionContext(AiCardSelectionKind.BundleChoice, "Choose one card bundle.", 1, 1, Cancelable: false, Zone: "bundle", Source: nameof(NChooseABundleSelectionScreen), ExtraInfo: $"BundleCount={bundles.Count}");
+        var decision = await _runtime.DecisionEngine.ChooseBundleAsync(
+            context,
+            bundles.Select(entry => new CardBundleOption(entry.Index, entry.Bundle.Bundle)).ToList(),
+            _runtime.GetCurrentAnalysis(),
+            CancellationToken.None);
+
+        var target = bundles.FirstOrDefault(entry => entry.Index == decision.SelectedIndex)?.Bundle ?? bundles[0].Bundle;
+        ReplaceWithSingleBadge(target, decision.Reason, "Bundle 推荐");
+        return true;
+    }
+
+    private async Task<bool> RefreshCrystalSphereRecommendationAsync(NCrystalSphereScreen screen)
+    {
+        if (_runtime?.DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var proceedButton = screen.GetNodeOrNull<NProceedButton>("%ProceedButton");
+        if (proceedButton is not null && proceedButton.IsEnabled)
+        {
+            ReplaceWithSingleBadge(proceedButton, "当前可以直接结束 Crystal Sphere 选择。", "Crystal Sphere 推荐");
+            return true;
+        }
+
+        var cellsContainer = screen.GetNodeOrNull<Control>("%Cells");
+        if (cellsContainer is null)
+        {
+            return false;
+        }
+
+        var hiddenCells = UiHelper.FindAll<NCrystalSphereCell>(cellsContainer)
+            .Where(cell => cell.Visible && cell.Entity.IsHidden && cell.IsVisibleInTree())
+            .ToList();
+        if (hiddenCells.Count == 0)
+        {
+            return false;
+        }
+
+        var entityField = typeof(NCrystalSphereScreen).GetField("_entity", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var minigame = entityField?.GetValue(screen) as MegaCrit.Sts2.Core.Events.Custom.CrystalSphereEvent.CrystalSphereMinigame;
+        if (minigame is null)
+        {
+            return false;
+        }
+
+        var decision = await _runtime.DecisionEngine.ChooseCrystalSphereActionAsync(minigame, _runtime.GetCurrentAnalysis(), CancellationToken.None);
+        var target = hiddenCells.FirstOrDefault(cell => cell.Entity.X == decision.X && cell.Entity.Y == decision.Y) ?? hiddenCells[0];
+        var reason = decision.Reason + (decision.UseBigDivination ? "（推荐大范围占卜）" : "（推荐小范围占卜）");
+        ReplaceWithSingleBadge(target, reason, "Crystal Sphere 推荐");
+        return true;
+    }
+
+    private async Task<bool> RefreshRewardsRecommendationAsync(NRewardsScreen screen)
+    {
+        if (_runtime?.DecisionEngine is null)
+        {
+            return false;
+        }
+
+        var player = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState());
+        var allButtons = UiHelper.FindAll<NRewardButton>(screen).ToList();
+        var buttons = allButtons
+            .Where(button => button.IsEnabled)
+            .Where(button => button.Visible && button.IsVisibleInTree())
+            .ToList();
+        if (buttons.Count == 0)
+        {
+            return false;
+        }
+
+        var decision = await _runtime.DecisionEngine.ChooseRewardAsync(buttons, player?.HasOpenPotionSlots ?? false, _runtime.GetCurrentAnalysis(), CancellationToken.None);
+        var target = decision.Button ?? buttons[0];
+        ReplaceWithSingleBadge(target, decision.Reason, "奖励领取推荐");
         return true;
     }
 
@@ -519,6 +623,36 @@ public sealed partial class AgentRecommendOverlay : CanvasLayer
                 .Select(holder => holder.Relic.Model.Title.GetFormattedText())
                 .ToList();
             return "relic:" + string.Join("|", names);
+        }
+
+        if (overlay is NChooseABundleSelectionScreen bundleScreen)
+        {
+            var bundles = UiHelper.FindAll<NCardBundle>(bundleScreen)
+                .Where(bundle => bundle.Bundle is { Count: > 0 })
+                .Select(bundle => string.Join(",", bundle.Bundle.Select(card => card.Id.ToString())))
+                .ToList();
+            return "bundle:" + string.Join("|", bundles);
+        }
+
+        if (overlay is NCrystalSphereScreen crystalSphereScreen)
+        {
+            var cellsContainer = crystalSphereScreen.GetNodeOrNull<Control>("%Cells");
+            var cells = cellsContainer is null
+                ? new List<string>()
+                : UiHelper.FindAll<NCrystalSphereCell>(cellsContainer)
+                    .Where(cell => cell.Visible && cell.Entity.IsHidden)
+                    .Select(cell => $"{cell.Entity.X}:{cell.Entity.Y}")
+                    .ToList();
+            return "crystal:" + string.Join("|", cells);
+        }
+
+        if (overlay is NRewardsScreen rewardsScreen)
+        {
+            var rewards = UiHelper.FindAll<NRewardButton>(rewardsScreen)
+                .Where(button => button.Visible && button.IsVisibleInTree())
+                .Select(button => button.Reward?.GetType().Name ?? "reward")
+                .ToList();
+            return "rewards:" + string.Join("|", rewards);
         }
 
         if (NMapScreen.Instance is not null && NMapScreen.Instance.IsVisibleInTree() && !NMapScreen.Instance.IsTraveling)
