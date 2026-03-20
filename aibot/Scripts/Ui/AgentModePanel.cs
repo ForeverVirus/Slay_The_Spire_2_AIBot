@@ -15,6 +15,7 @@ public sealed partial class AgentModePanel : CanvasLayer
     private readonly Label _title;
     private readonly Label _currentModeLabel;
     private readonly Label _statusLabel;
+    private readonly Label _hintLabel;
     private readonly Dictionary<AgentMode, Button> _modeButtons = new();
     private readonly PanelContainer _confirmPanel;
     private readonly Label _confirmLabel;
@@ -88,12 +89,12 @@ public sealed partial class AgentModePanel : CanvasLayer
             _modeButtons[mode] = button;
         }
 
-        var hintLabel = new Label
+        _hintLabel = new Label
         {
-            Text = "热键：F8 打开/关闭面板",
+            Text = "热键：F5/F6/F7/F8 切换模式",
             AutowrapMode = TextServer.AutowrapMode.WordSmart
         };
-        layout.AddChild(hintLabel);
+        layout.AddChild(_hintLabel);
 
         _confirmPanel = new PanelContainer
         {
@@ -175,7 +176,7 @@ public sealed partial class AgentModePanel : CanvasLayer
     public override void _UnhandledInput(InputEvent @event)
     {
         base._UnhandledInput(@event);
-        if (_runtime?.Config.Ui.ShowModePanel != true)
+        if (_runtime is null)
         {
             return;
         }
@@ -185,8 +186,13 @@ public sealed partial class AgentModePanel : CanvasLayer
             return;
         }
 
-        var hotkey = (_runtime?.Config.Ui.ModePanelHotkey ?? "F8").Trim().ToLowerInvariant();
-        if (hotkey == "f8" && keyEvent.Keycode == Key.F8)
+        if (TryHandleModeHotkey(keyEvent.Keycode))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (_runtime.Config.Ui.ShowModePanel && HotkeyMatches(_runtime.Config.Ui.ModePanelHotkey, keyEvent.Keycode))
         {
             Visible = !Visible;
             GetViewport().SetInputAsHandled();
@@ -274,6 +280,55 @@ public sealed partial class AgentModePanel : CanvasLayer
         }
 
         Visible = _runtime.Config.Ui.ShowModePanel && _runtime.Config.Ui.ModePanelStartVisible;
+        _hintLabel.Text = BuildHotkeyHint();
+    }
+
+    private bool TryHandleModeHotkey(Key keycode)
+    {
+        if (_runtime is null)
+        {
+            return false;
+        }
+
+        foreach (var mode in new[] { AgentMode.FullAuto, AgentMode.SemiAuto, AgentMode.Assist, AgentMode.QnA })
+        {
+            if (!HotkeyMatches(_runtime.Config.Ui.ModeHotkeys.GetHotkey(mode), keycode))
+            {
+                continue;
+            }
+
+            Visible = true;
+            TaskHelper.RunSafely(RequestModeSwitchAsync(mode));
+            return true;
+        }
+
+        return false;
+    }
+
+    private string BuildHotkeyHint()
+    {
+        if (_runtime is null)
+        {
+            return "热键：F5/F6/F7/F8 切换模式";
+        }
+
+        var hotkeys = _runtime.Config.Ui.ModeHotkeys;
+        var toggleSuffix = string.IsNullOrWhiteSpace(_runtime.Config.Ui.ModePanelHotkey)
+            ? string.Empty
+            : $"；{_runtime.Config.Ui.ModePanelHotkey} 显示/隐藏面板";
+
+        return $"热键：{hotkeys.FullAuto} Full Auto，{hotkeys.SemiAuto} Semi Auto，{hotkeys.Assist} Assist，{hotkeys.QnA} QnA{toggleSuffix}";
+    }
+
+    private static bool HotkeyMatches(string? configuredHotkey, Key keycode)
+    {
+        if (string.IsNullOrWhiteSpace(configuredHotkey))
+        {
+            return false;
+        }
+
+        var normalized = configuredHotkey.Trim().Replace("-", string.Empty).Replace(" ", string.Empty);
+        return Enum.TryParse<Key>(normalized, true, out var parsed) && parsed == keycode;
     }
 
     private void SetStatus(string text, bool isError)

@@ -158,8 +158,7 @@ public sealed partial class AgentChatDialog : CanvasLayer
             return;
         }
 
-        var hotkey = (_runtime?.Config.Ui.ChatHotkey ?? "Tab").Trim().ToLowerInvariant();
-        if (hotkey == "tab" && keyEvent.Keycode == Key.Tab)
+        if (HotkeyMatches(_runtime?.Config.Ui.ChatHotkey, keyEvent.Keycode))
         {
             Visible = !Visible;
             if (Visible)
@@ -181,7 +180,8 @@ public sealed partial class AgentChatDialog : CanvasLayer
 
         if (changed)
         {
-            while (_messages.Count > 50)
+            var maxHistory = Math.Max(1, _runtime?.Config.Agent.MaxConversationHistory ?? 50);
+            while (_messages.Count > maxHistory)
             {
                 _messages.RemoveAt(0);
             }
@@ -247,5 +247,16 @@ public sealed partial class AgentChatDialog : CanvasLayer
 
         _history.Text = builder.ToString().TrimEnd();
         _history.ScrollToLine(Math.Max(0, _history.GetLineCount() - 1));
+    }
+
+    private static bool HotkeyMatches(string? configuredHotkey, Key keycode)
+    {
+        if (string.IsNullOrWhiteSpace(configuredHotkey))
+        {
+            return false;
+        }
+
+        var normalized = configuredHotkey.Trim().Replace("-", string.Empty).Replace(" ", string.Empty);
+        return Enum.TryParse<Key>(normalized, true, out var parsed) && parsed == keycode;
     }
 }

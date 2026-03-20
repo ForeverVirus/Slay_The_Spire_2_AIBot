@@ -18,11 +18,27 @@
   },
   "agent": {
     "defaultMode": "fullAuto",
-    "confirmOnModeSwitch": true
+    "confirmOnModeSwitch": true,
+    "maxConversationHistory": 50
+  },
+  "knowledge": {
+    "enableCustom": true,
+    "customDir": "custom",
+    "maxCustomFileSize": 262144
   },
   "ui": {
     "showChatDialog": true,
-    "chatHotkey": "Tab"
+    "chatHotkey": "Tab",
+    "modeHotkeys": {
+      "fullAuto": "F5",
+      "semiAuto": "F6",
+      "assist": "F7",
+      "qna": "F8"
+    },
+    "showModePanel": true,
+    "modePanelHotkey": "F4",
+    "modePanelStartVisible": true,
+    "showRecommendOverlay": true
   },
   "logging": {
     "verbose": true,

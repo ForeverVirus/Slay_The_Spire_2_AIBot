@@ -47,6 +47,9 @@ public sealed class AiBotConfig
     [JsonPropertyName("agent")]
     public AgentRuntimeConfig Agent { get; set; } = new();
 
+    [JsonPropertyName("knowledge")]
+    public KnowledgeConfig Knowledge { get; set; } = new();
+
     [JsonPropertyName("ui")]
     public AgentUiConfig Ui { get; set; } = new();
 
@@ -90,6 +93,9 @@ public sealed class AgentRuntimeConfig
     [JsonPropertyName("confirmOnModeSwitch")]
     public bool ConfirmOnModeSwitch { get; set; } = true;
 
+    [JsonPropertyName("maxConversationHistory")]
+    public int MaxConversationHistory { get; set; } = 50;
+
     public AgentMode GetDefaultMode()
     {
         return DefaultMode.Trim().ToLowerInvariant() switch
@@ -103,6 +109,18 @@ public sealed class AgentRuntimeConfig
     }
 }
 
+public sealed class KnowledgeConfig
+{
+    [JsonPropertyName("enableCustom")]
+    public bool EnableCustom { get; set; } = true;
+
+    [JsonPropertyName("customDir")]
+    public string CustomDir { get; set; } = "custom";
+
+    [JsonPropertyName("maxCustomFileSize")]
+    public int MaxCustomFileSize { get; set; } = 262144;
+}
+
 public sealed class AgentUiConfig
 {
     [JsonPropertyName("showChatDialog")]
@@ -111,15 +129,45 @@ public sealed class AgentUiConfig
     [JsonPropertyName("chatHotkey")]
     public string ChatHotkey { get; set; } = "Tab";
 
+    [JsonPropertyName("modeHotkeys")]
+    public AgentModeHotkeyConfig ModeHotkeys { get; set; } = new();
+
     [JsonPropertyName("showModePanel")]
     public bool ShowModePanel { get; set; } = true;
 
     [JsonPropertyName("modePanelHotkey")]
-    public string ModePanelHotkey { get; set; } = "F8";
+    public string ModePanelHotkey { get; set; } = "F4";
 
     [JsonPropertyName("modePanelStartVisible")]
     public bool ModePanelStartVisible { get; set; } = true;
 
     [JsonPropertyName("showRecommendOverlay")]
     public bool ShowRecommendOverlay { get; set; } = true;
+}
+
+public sealed class AgentModeHotkeyConfig
+{
+    [JsonPropertyName("fullAuto")]
+    public string FullAuto { get; set; } = "F5";
+
+    [JsonPropertyName("semiAuto")]
+    public string SemiAuto { get; set; } = "F6";
+
+    [JsonPropertyName("assist")]
+    public string Assist { get; set; } = "F7";
+
+    [JsonPropertyName("qna")]
+    public string QnA { get; set; } = "F8";
+
+    public string GetHotkey(AgentMode mode)
+    {
+        return mode switch
+        {
+            AgentMode.FullAuto => FullAuto,
+            AgentMode.SemiAuto => SemiAuto,
+            AgentMode.Assist => Assist,
+            AgentMode.QnA => QnA,
+            _ => string.Empty
+        };
+    }
 }

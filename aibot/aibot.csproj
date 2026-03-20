@@ -14,7 +14,7 @@
     <None Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <GuideFiles Include="..\sts2_guides\*.json;..\sts2_guides\*.md" />
+    <GuideFiles Include="..\sts2_guides\**\*.json;..\sts2_guides\**\*.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,9 +34,12 @@
     <Message Text="Copying mod to Slay the Spire 2 mods folder..." Importance="high" />
     <MakeDir Directories="$(Sts2Dir)\mods\" />
     <MakeDir Directories="$(Sts2Dir)\mods\$(MSBuildProjectName)\KnowledgeBase\" />
+    <MakeDir Directories="@(GuideFiles->'$(Sts2Dir)\mods\$(MSBuildProjectName)\KnowledgeBase\%(RecursiveDir)')" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\" />
     <Copy SourceFiles="$(MSBuildProjectName).json" DestinationFolder="$(Sts2Dir)/mods/$(MSBuildProjectName)/" />
     <Copy SourceFiles="config.json" DestinationFolder="$(Sts2Dir)/mods/$(MSBuildProjectName)/" />
-    <Copy SourceFiles="@(GuideFiles)" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\KnowledgeBase\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(GuideFiles)"
+          DestinationFiles="@(GuideFiles->'$(Sts2Dir)\mods\$(MSBuildProjectName)\KnowledgeBase\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
   </Target>
 </Project>
