@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using aibot.Scripts.Agent;
 
 namespace aibot.Scripts.Config;
 
@@ -43,6 +44,9 @@ public sealed class AiBotConfig
     [JsonPropertyName("logging")]
     public LoggingConfig Logging { get; set; } = new();
 
+    [JsonPropertyName("agent")]
+    public AgentRuntimeConfig Agent { get; set; } = new();
+
     [JsonIgnore]
     public bool CanUseCloud =>
         PreferCloud &&
@@ -73,4 +77,25 @@ public sealed class LoggingConfig
 
     [JsonPropertyName("logDecisionPrompt")]
     public bool LogDecisionPrompt { get; set; }
+}
+
+public sealed class AgentRuntimeConfig
+{
+    [JsonPropertyName("defaultMode")]
+    public string DefaultMode { get; set; } = "fullAuto";
+
+    [JsonPropertyName("confirmOnModeSwitch")]
+    public bool ConfirmOnModeSwitch { get; set; } = true;
+
+    public AgentMode GetDefaultMode()
+    {
+        return DefaultMode.Trim().ToLowerInvariant() switch
+        {
+            "fullauto" => AgentMode.FullAuto,
+            "semiauto" => AgentMode.SemiAuto,
+            "assist" => AgentMode.Assist,
+            "qna" => AgentMode.QnA,
+            _ => AgentMode.FullAuto
+        };
+    }
 }

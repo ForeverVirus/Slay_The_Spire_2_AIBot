@@ -35,6 +35,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using aibot.Scripts.Agent;
 using aibot.Scripts.Config;
 using aibot.Scripts.Decision;
 using aibot.Scripts.Knowledge;
@@ -93,6 +94,7 @@ public sealed class AiBotRuntime : IDisposable
         DecisionEngine = new HybridDecisionEngine(Config, heuristic, cloud);
 
         IsInitialized = true;
+        AgentCore.Instance.Initialize(this);
         Log.Info($"[AiBot] Runtime initialized. CloudEnabled={Config.CanUseCloud}");
     }
 
@@ -149,12 +151,22 @@ public sealed class AiBotRuntime : IDisposable
 
     public void Activate(string reason)
     {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        TaskHelper.RunSafely(AgentCore.Instance.ActivateDefaultModeAsync(reason));
+    }
+
+    internal void ActivateLegacyFullAuto(string reason)
+    {
         if (!IsInitialized || DecisionEngine is null || StateAnalyzer is null)
         {
             return;
         }
 
-        Deactivate();
+        DeactivateLegacyFullAuto();
 
         var runState = RunManager.Instance.DebugOnlyGetState();
         if (runState is null)
@@ -174,6 +186,11 @@ public sealed class AiBotRuntime : IDisposable
     }
 
     public void Deactivate()
+    {
+        TaskHelper.RunSafely(AgentCore.Instance.DeactivateCurrentModeAsync());
+    }
+
+    internal void DeactivateLegacyFullAuto()
     {
         if (_loopCts is not null)
         {
