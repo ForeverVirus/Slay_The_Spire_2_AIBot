@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using Godot;
+using aibot.Scripts.Agent;
 
 namespace aibot.Scripts.Ui;
 
@@ -11,8 +12,12 @@ public sealed partial class AiBotDecisionPanel : CanvasLayer
 
     private readonly PanelContainer _panel;
     private readonly Label _title;
+    private readonly Label _currentMode;
+    private readonly VBoxContainer _body;
     private readonly RichTextLabel _content;
+    private readonly Button _toggleButton;
     private int _maxEntries;
+    private bool _isCollapsed;
 
     public AiBotDecisionPanel(int maxEntries = 16)
     {
@@ -42,12 +47,36 @@ public sealed partial class AiBotDecisionPanel : CanvasLayer
         layout.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         margin.AddChild(layout);
 
+        var header = new HBoxContainer();
+        layout.AddChild(header);
+
         _title = new Label
         {
             Text = "AiBot Decisions",
-            HorizontalAlignment = HorizontalAlignment.Left
+            HorizontalAlignment = HorizontalAlignment.Left,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };
-        layout.AddChild(_title);
+        header.AddChild(_title);
+
+        _currentMode = new Label
+        {
+            Text = "Mode: Full Auto",
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        header.AddChild(_currentMode);
+
+        _toggleButton = new Button
+        {
+            Text = "最小化"
+        };
+        _toggleButton.Pressed += ToggleCollapsed;
+        header.AddChild(_toggleButton);
+
+        _body = new VBoxContainer
+        {
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill
+        };
+        layout.AddChild(_body);
 
         _content = new RichTextLabel
         {
@@ -59,24 +88,28 @@ public sealed partial class AiBotDecisionPanel : CanvasLayer
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
             Text = "Waiting for decisions..."
         };
-        layout.AddChild(_content);
+        _body.AddChild(_content);
     }
 
     public override void _Ready()
     {
         base._Ready();
         AiBotDecisionFeed.EntryAdded += OnEntryAdded;
+        AgentCore.Instance.ModeChanged += OnModeChanged;
         foreach (var entry in AiBotDecisionFeed.GetEntries())
         {
             _entries.Add(entry);
         }
 
+        UpdateModeLabel(AgentCore.Instance.CurrentMode);
+        ApplyCollapsedState();
         RefreshText();
     }
 
     public override void _ExitTree()
     {
         AiBotDecisionFeed.EntryAdded -= OnEntryAdded;
+        AgentCore.Instance.ModeChanged -= OnModeChanged;
         base._ExitTree();
     }
 
@@ -116,6 +149,11 @@ public sealed partial class AiBotDecisionPanel : CanvasLayer
         _pendingEntries.Enqueue(entry);
     }
 
+    private void OnModeChanged(AgentMode mode)
+    {
+        UpdateModeLabel(mode);
+    }
+
     private void RefreshText()
     {
         if (_entries.Count == 0)
@@ -136,5 +174,35 @@ public sealed partial class AiBotDecisionPanel : CanvasLayer
 
         _content.Text = builder.ToString().TrimEnd();
         _content.ScrollToLine(0);
+    }
+
+    private void ToggleCollapsed()
+    {
+        _isCollapsed = !_isCollapsed;
+        ApplyCollapsedState();
+    }
+
+    private void ApplyCollapsedState()
+    {
+        _body.Visible = !_isCollapsed;
+        _toggleButton.Text = _isCollapsed ? "展开" : "最小化";
+        _panel.OffsetBottom = _isCollapsed ? 64f : 620f;
+    }
+
+    private void UpdateModeLabel(AgentMode mode)
+    {
+        _currentMode.Text = $"Mode: {GetModeDisplayName(mode)}";
+    }
+
+    private static string GetModeDisplayName(AgentMode mode)
+    {
+        return mode switch
+        {
+            AgentMode.FullAuto => "Full Auto",
+            AgentMode.SemiAuto => "Semi Auto",
+            AgentMode.Assist => "Assist",
+            AgentMode.QnA => "QnA",
+            _ => mode.ToString()
+        };
     }
 }
