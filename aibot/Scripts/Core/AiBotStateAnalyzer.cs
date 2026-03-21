@@ -137,9 +137,9 @@ public sealed class AiBotStateAnalyzer
 
         var summary = string.Join(" ", new[]
         {
-            build.SummaryEn,
-            build.StrategyEn,
-            build.TipsEn
+            KnowledgeTextFormatter.FormatPlainText(build.SummaryEn),
+            KnowledgeTextFormatter.FormatPlainText(build.StrategyEn),
+            KnowledgeTextFormatter.FormatPlainText(build.TipsEn)
         }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
 
         return string.IsNullOrWhiteSpace(summary) ? characterBrief : summary;

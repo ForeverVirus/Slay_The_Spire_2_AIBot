@@ -254,12 +254,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(card.DescriptionEn))
         {
-            lines.Add($"描述(EN)：{card.DescriptionEn}");
+            lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatCardText(card, card.DescriptionEn)}");
         }
 
         if (!string.IsNullOrWhiteSpace(card.DescriptionZh))
         {
-            lines.Add($"描述(ZH)：{card.DescriptionZh}");
+            lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatCardText(card, card.DescriptionZh)}");
         }
 
         return string.Join("\n", lines);
@@ -275,12 +275,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(relic.DescriptionEn))
         {
-            lines.Add($"描述(EN)：{relic.DescriptionEn}");
+            lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatRelicText(relic, relic.DescriptionEn)}");
         }
 
         if (!string.IsNullOrWhiteSpace(relic.DescriptionZh))
         {
-            lines.Add($"描述(ZH)：{relic.DescriptionZh}");
+            lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatRelicText(relic, relic.DescriptionZh)}");
         }
 
         return string.Join("\n", lines);
@@ -301,17 +301,17 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(potion.Usage))
         {
-            lines.Add($"使用建议：{potion.Usage}");
+            lines.Add($"使用建议：{KnowledgeTextFormatter.FormatPlainText(potion.Usage)}");
         }
 
         if (!string.IsNullOrWhiteSpace(potion.DescriptionZh))
         {
-            lines.Add($"描述(ZH)：{potion.DescriptionZh}");
+            lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatPotionText(potion, potion.DescriptionZh)}");
         }
 
         if (!string.IsNullOrWhiteSpace(potion.DescriptionEn))
         {
-            lines.Add($"描述(EN)：{potion.DescriptionEn}");
+            lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatPotionText(potion, potion.DescriptionEn)}");
         }
 
         return string.Join("\n", lines);
@@ -327,12 +327,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(enemy.DescriptionZh))
         {
-            lines.Add($"描述(ZH)：{enemy.DescriptionZh}");
+            lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatPlainText(enemy.DescriptionZh)}");
         }
 
         if (!string.IsNullOrWhiteSpace(enemy.DescriptionEn))
         {
-            lines.Add($"描述(EN)：{enemy.DescriptionEn}");
+            lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatPlainText(enemy.DescriptionEn)}");
         }
 
         if (enemy.Moves.Count > 0)
@@ -349,7 +349,7 @@ public sealed class KnowledgeSearchEngine
                 var banter = string.IsNullOrWhiteSpace(move.BanterZh) ? move.BanterEn : move.BanterZh;
                 if (!string.IsNullOrWhiteSpace(banter))
                 {
-                    entry += $"；台词：{Trim(banter, 80)}";
+                    entry += $"；台词：{Trim(KnowledgeTextFormatter.FormatPlainText(banter), 80)}";
                 }
 
                 lines.Add($"- {entry}");
@@ -379,12 +379,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(power.DescriptionZh))
         {
-            lines.Add($"描述(ZH)：{power.DescriptionZh}");
+            lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatPowerText(power, power.DescriptionZh)}");
         }
 
         if (!string.IsNullOrWhiteSpace(power.DescriptionEn))
         {
-            lines.Add($"描述(EN)：{power.DescriptionEn}");
+            lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatPowerText(power, power.DescriptionEn)}");
         }
 
         return string.Join("\n", lines);
@@ -400,12 +400,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionZh))
         {
-            lines.Add($"说明(ZH)：{gameEvent.DescriptionZh}");
+            lines.Add($"说明(ZH)：{KnowledgeTextFormatter.FormatEventText(gameEvent, gameEvent.DescriptionZh)}");
         }
 
         if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionEn))
         {
-            lines.Add($"说明(EN)：{gameEvent.DescriptionEn}");
+            lines.Add($"说明(EN)：{KnowledgeTextFormatter.FormatEventText(gameEvent, gameEvent.DescriptionEn)}");
         }
 
         return string.Join("\n", lines);
@@ -421,12 +421,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(enchantment.DescriptionZh))
         {
-            lines.Add($"说明(ZH)：{enchantment.DescriptionZh}");
+            lines.Add($"说明(ZH)：{KnowledgeTextFormatter.FormatEnchantmentText(enchantment, enchantment.DescriptionZh)}");
         }
 
         if (!string.IsNullOrWhiteSpace(enchantment.DescriptionEn))
         {
-            lines.Add($"说明(EN)：{enchantment.DescriptionEn}");
+            lines.Add($"说明(EN)：{KnowledgeTextFormatter.FormatEnchantmentText(enchantment, enchantment.DescriptionEn)}");
         }
 
         return string.Join("\n", lines);
@@ -457,20 +457,20 @@ public sealed class KnowledgeSearchEngine
             builder.AppendLine($"- {build.NameEn} / {build.NameZh}");
             if (!string.IsNullOrWhiteSpace(build.SummaryZh))
             {
-                builder.AppendLine($"  摘要(ZH)：{build.SummaryZh}");
+                builder.AppendLine($"  摘要(ZH)：{KnowledgeTextFormatter.FormatPlainText(build.SummaryZh)}");
             }
             if (!string.IsNullOrWhiteSpace(build.SummaryEn))
             {
-                builder.AppendLine($"  摘要(EN)：{build.SummaryEn}");
+                builder.AppendLine($"  摘要(EN)：{KnowledgeTextFormatter.FormatPlainText(build.SummaryEn)}");
             }
 
             if (!string.IsNullOrWhiteSpace(build.TipsZh))
             {
-                builder.AppendLine($"  要点(ZH)：{build.TipsZh}");
+                builder.AppendLine($"  要点(ZH)：{KnowledgeTextFormatter.FormatPlainText(build.TipsZh)}");
             }
             if (!string.IsNullOrWhiteSpace(build.TipsEn))
             {
-                builder.AppendLine($"  要点(EN)：{build.TipsEn}");
+                builder.AppendLine($"  要点(EN)：{KnowledgeTextFormatter.FormatPlainText(build.TipsEn)}");
             }
         }
 

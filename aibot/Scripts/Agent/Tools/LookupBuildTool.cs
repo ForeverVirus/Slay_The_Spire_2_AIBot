@@ -1,5 +1,6 @@
 using System.Text;
 using aibot.Scripts.Core;
+using aibot.Scripts.Knowledge;
 
 namespace aibot.Scripts.Agent.Tools;
 
@@ -37,19 +38,19 @@ public sealed class LookupBuildTool : RuntimeBackedToolBase
             builder.AppendLine($"构筑：{build.NameEn} / {build.NameZh}");
             if (!string.IsNullOrWhiteSpace(build.SummaryZh))
             {
-                builder.AppendLine($"摘要(ZH)：{build.SummaryZh}");
+                builder.AppendLine($"摘要(ZH)：{KnowledgeTextFormatter.FormatPlainText(build.SummaryZh)}");
             }
             if (!string.IsNullOrWhiteSpace(build.SummaryEn))
             {
-                builder.AppendLine($"摘要(EN)：{build.SummaryEn}");
+                builder.AppendLine($"摘要(EN)：{KnowledgeTextFormatter.FormatPlainText(build.SummaryEn)}");
             }
             if (!string.IsNullOrWhiteSpace(build.TipsZh))
             {
-                builder.AppendLine($"要点(ZH)：{build.TipsZh}");
+                builder.AppendLine($"要点(ZH)：{KnowledgeTextFormatter.FormatPlainText(build.TipsZh)}");
             }
             if (!string.IsNullOrWhiteSpace(build.TipsEn))
             {
-                builder.AppendLine($"要点(EN)：{build.TipsEn}");
+                builder.AppendLine($"要点(EN)：{KnowledgeTextFormatter.FormatPlainText(build.TipsEn)}");
             }
             builder.AppendLine();
         }

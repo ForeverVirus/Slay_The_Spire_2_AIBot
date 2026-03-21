@@ -1,5 +1,6 @@
 using System.Text;
 using aibot.Scripts.Core;
+using aibot.Scripts.Knowledge;
 
 namespace aibot.Scripts.Agent.Tools;
 
@@ -34,11 +35,11 @@ public sealed class LookupCardTool : RuntimeBackedToolBase
         builder.AppendLine($"类型：{card.CardType ?? "Unknown"}");
         if (!string.IsNullOrWhiteSpace(card.DescriptionZh))
         {
-            builder.AppendLine($"描述(ZH)：{card.DescriptionZh}");
+            builder.AppendLine($"描述(ZH)：{KnowledgeTextFormatter.FormatCardText(card, card.DescriptionZh)}");
         }
         if (!string.IsNullOrWhiteSpace(card.DescriptionEn))
         {
-            builder.AppendLine($"描述(EN)：{card.DescriptionEn}");
+            builder.AppendLine($"描述(EN)：{KnowledgeTextFormatter.FormatCardText(card, card.DescriptionEn)}");
         }
         return Task.FromResult(builder.ToString().Trim());
     }

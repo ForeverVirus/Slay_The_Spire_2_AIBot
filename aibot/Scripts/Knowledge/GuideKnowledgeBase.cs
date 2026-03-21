@@ -251,7 +251,7 @@ public sealed class GuideKnowledgeBase
                 var guide = FindCard(entry, characterId);
                 return guide is null
                     ? $"- {entry}"
-                    : $"- {entry}: {guide.CardType ?? "Unknown"}; {TrimSnippet(SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn), 120)}";
+                    : $"- {entry}: {guide.CardType ?? "Unknown"}; {TrimSnippet(KnowledgeTextFormatter.FormatCardText(guide, SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn)), 120)}";
             })
             .ToList();
 
@@ -267,7 +267,7 @@ public sealed class GuideKnowledgeBase
                 var guide = FindRelic(name, characterId);
                 return guide is null
                     ? $"- {name}"
-                    : $"- {name}: {TrimSnippet(SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn), 120)}";
+                    : $"- {name}: {TrimSnippet(KnowledgeTextFormatter.FormatRelicText(guide, SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn)), 120)}";
             })
             .ToList();
 
@@ -288,7 +288,7 @@ public sealed class GuideKnowledgeBase
             var potion = FindPotion(name);
             return potion is null
                 ? $"- {name}"
-                : $"- {name}: {(string.IsNullOrWhiteSpace(potion.Rarity) ? "Potion" : potion.Rarity)}; {TrimSnippet(SelectBestSummaryText(potion.DescriptionZh, potion.DescriptionEn, potion.Usage), 120)}";
+                : $"- {name}: {(string.IsNullOrWhiteSpace(potion.Rarity) ? "Potion" : potion.Rarity)}; {TrimSnippet(KnowledgeTextFormatter.FormatPotionText(potion, SelectBestSummaryText(potion.DescriptionZh, potion.DescriptionEn, potion.Usage)), 120)}";
         }).ToList();
         if (snippets.Count > 0)
         {
@@ -392,11 +392,11 @@ public sealed class GuideKnowledgeBase
             sb.AppendLine($"Build: {build.NameEn} / {build.NameZh}");
             if (!string.IsNullOrWhiteSpace(build.SummaryEn))
             {
-                sb.AppendLine($"Summary: {build.SummaryEn}");
+                sb.AppendLine($"Summary: {KnowledgeTextFormatter.FormatPlainText(build.SummaryEn)}");
             }
             if (!string.IsNullOrWhiteSpace(build.TipsEn))
             {
-                sb.AppendLine($"Tips: {build.TipsEn}");
+                sb.AppendLine($"Tips: {KnowledgeTextFormatter.FormatPlainText(build.TipsEn)}");
             }
         }
 

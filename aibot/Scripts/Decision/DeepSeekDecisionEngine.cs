@@ -1045,7 +1045,7 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
         var cost = card.EnergyCost.CostsX ? "X" : card.EnergyCost.GetAmountToSpend().ToString();
         var starCost = card.HasStarCostX ? "X" : card.CurrentStarCost >= 0 ? card.CurrentStarCost.ToString() : "none";
         var description = TrimText(card.GetDescriptionForPile(PileType.Deck), 140);
-        var guideNote = guide is null ? string.Empty : TrimText(guide.DescriptionEn, 110);
+        var guideNote = guide is null ? string.Empty : TrimText(KnowledgeTextFormatter.FormatCardText(guide, guide.DescriptionEn), 110);
 
         return $"{card.Title}; type={card.Type}; rarity={card.Rarity}; cost={cost}; starCost={starCost}; upgraded={card.IsUpgraded}; keywords={(string.IsNullOrWhiteSpace(keywords) ? "none" : keywords)}; tags={(string.IsNullOrWhiteSpace(tags) ? "none" : tags)}; text={description}{(string.IsNullOrWhiteSpace(guideNote) ? string.Empty : $"; guide={guideNote}")}";
     }
@@ -1077,7 +1077,7 @@ public sealed class DeepSeekDecisionEngine : IAiDecisionEngine, IDisposable
     {
         var guide = _knowledgeBase?.FindRelic(model.Title.GetFormattedText(), analysis.CharacterId);
         var relicText = TrimText(SafeFormat(() => model.DynamicDescription.GetFormattedText(), model.Title.GetFormattedText(), $"relic {model.Id.Entry}"), 140);
-        var guideNote = guide is null ? string.Empty : TrimText(guide.DescriptionEn, 110);
+        var guideNote = guide is null ? string.Empty : TrimText(KnowledgeTextFormatter.FormatRelicText(guide, guide.DescriptionEn), 110);
         return $"relic {model.Title.GetFormattedText()}; rarity={model.Rarity}; text={relicText}{(string.IsNullOrWhiteSpace(guideNote) ? string.Empty : $"; guide={guideNote}")}";
     }
 

@@ -1,5 +1,6 @@
 using System.Text;
 using aibot.Scripts.Core;
+using aibot.Scripts.Knowledge;
 
 namespace aibot.Scripts.Agent.Tools;
 
@@ -33,11 +34,11 @@ public sealed class LookupRelicTool : RuntimeBackedToolBase
         builder.AppendLine($"Slug：{relic.Slug}");
         if (!string.IsNullOrWhiteSpace(relic.DescriptionZh))
         {
-            builder.AppendLine($"描述(ZH)：{relic.DescriptionZh}");
+            builder.AppendLine($"描述(ZH)：{KnowledgeTextFormatter.FormatRelicText(relic, relic.DescriptionZh)}");
         }
         if (!string.IsNullOrWhiteSpace(relic.DescriptionEn))
         {
-            builder.AppendLine($"描述(EN)：{relic.DescriptionEn}");
+            builder.AppendLine($"描述(EN)：{KnowledgeTextFormatter.FormatRelicText(relic, relic.DescriptionEn)}");
         }
         return Task.FromResult(builder.ToString().Trim());
     }
