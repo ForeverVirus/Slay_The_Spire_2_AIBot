@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "description": "Canonical Slay the Spire 2 knowledge base schema for core/custom layered loading.",
   "jsonFiles": {
     "characters.json": { "type": "CharacterGuideEntry[]", "key": "id" },
@@ -22,7 +22,14 @@
         "Use stackType values that match in-game semantics such as Counter or Single."
       ]
     },
-    "enemies.json": { "type": "EnemyEntry[]", "key": "slug" },
+    "enemies.json": {
+      "type": "EnemyEntry[]",
+      "key": "slug",
+      "notes": [
+        "EnemyEntry supports hpRange, intentPatternEn/Zh, specialMechanicsEn/Zh, and threatSummaryEn/Zh.",
+        "Use hpRange to capture ascension-sensitive health ranges compactly when exact values differ by difficulty."
+      ]
+    },
     "events.json": { "type": "EventEntry[]", "key": "slug" },
     "enchantments.json": { "type": "EnchantmentEntry[]", "key": "slug" },
     "game_mechanics.json": { "type": "MechanicRule[]", "key": "id" }

@@ -340,6 +340,11 @@ public sealed class KnowledgeSearchEngine
             $"来源：{enemy.Source}"
         };
 
+        if (!string.IsNullOrWhiteSpace(enemy.HpRange))
+        {
+            lines.Add($"生命区间：{enemy.HpRange}");
+        }
+
         if (!string.IsNullOrWhiteSpace(enemy.DescriptionZh))
         {
             lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatPlainText(enemy.DescriptionZh)}");
@@ -348,6 +353,36 @@ public sealed class KnowledgeSearchEngine
         if (!string.IsNullOrWhiteSpace(enemy.DescriptionEn))
         {
             lines.Add($"描述(EN)：{KnowledgeTextFormatter.FormatPlainText(enemy.DescriptionEn)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.IntentPatternZh))
+        {
+            lines.Add($"行动规律(ZH)：{KnowledgeTextFormatter.FormatPlainText(enemy.IntentPatternZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.IntentPatternEn))
+        {
+            lines.Add($"Intent Pattern(EN)：{KnowledgeTextFormatter.FormatPlainText(enemy.IntentPatternEn)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.SpecialMechanicsZh))
+        {
+            lines.Add($"特殊机制(ZH)：{KnowledgeTextFormatter.FormatPlainText(enemy.SpecialMechanicsZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.SpecialMechanicsEn))
+        {
+            lines.Add($"Special Mechanics(EN)：{KnowledgeTextFormatter.FormatPlainText(enemy.SpecialMechanicsEn)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.ThreatSummaryZh))
+        {
+            lines.Add($"威胁摘要(ZH)：{KnowledgeTextFormatter.FormatPlainText(enemy.ThreatSummaryZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(enemy.ThreatSummaryEn))
+        {
+            lines.Add($"Threat Summary(EN)：{KnowledgeTextFormatter.FormatPlainText(enemy.ThreatSummaryEn)}");
         }
 
         if (enemy.Moves.Count > 0)

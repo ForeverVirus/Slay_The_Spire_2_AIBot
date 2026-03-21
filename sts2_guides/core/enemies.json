@@ -266,6 +266,13 @@
 		"slug": "calcified-cultist",
 		"nameEn": "Calcified Cultist",
 		"nameZh": "钙化邪教徒",
+		"hpRange": "38-42 (A17+: 39-42)",
+		"intentPatternEn": "Always opens with Incantation, then repeats Dark Strike for the rest of the fight.",
+		"intentPatternZh": "固定先用一次念咒，之后整场战斗都会重复使用黑暗打击。",
+		"specialMechanicsEn": "Incantation applies Ritual 2 to itself, so its damage scales automatically every turn after the opener.",
+		"specialMechanicsZh": "念咒会给自己施加 2 层仪式，因此开场后每回合伤害都会自动成长。",
+		"threatSummaryEn": "A simple but urgent scaling attacker. If left alive, Dark Strike quickly becomes much harder to block efficiently.",
+		"threatSummaryZh": "这是一个朴素但必须尽快处理的成长型攻击手。若放任存活，黑暗打击会很快成长到难以稳定格挡。",
 		"moves": [
 			{
 				"id": "DARK_STRIKE",
@@ -793,11 +800,23 @@
 		"slug": "fuzzy-wurm-crawler",
 		"nameEn": "Fuzzy Wurm Crawler",
 		"nameZh": "毛绒伏地虫",
+		"hpRange": "55-59 (A17+: 58-59)",
+		"intentPatternEn": "Starts with Acid Goop, then uses Inhale, then loops Acid Goop -> Inhale -> Acid Goop.",
+		"intentPatternZh": "固定先打出酸液黏球，随后使用吸气，然后在酸液黏球与吸气之间循环。",
+		"specialMechanicsEn": "Inhale grants itself 7 Strength, so the Acid Goop immediately after the buff is the real burst turn.",
+		"specialMechanicsZh": "吸气会给自己增加 7 点力量，因此强化后的下一次酸液黏球才是真正的爆发回合。",
+		"threatSummaryEn": "Low pressure on turn one, but punishes slow setup because the post-Inhale attack spikes sharply.",
+		"threatSummaryZh": "第一回合压力不高，但会惩罚慢速铺垫，因为吸气后的下一击伤害会明显抬升。",
 		"moves": [
 			{
 				"id": "ACID_GOOP",
 				"titleEn": "Acid Goop",
 				"titleZh": "酸液黏球"
+			},
+			{
+				"id": "INHALE",
+				"titleEn": "Inhale",
+				"titleZh": "吸气"
 			}
 		],
 		"source": "core"
@@ -1066,6 +1085,13 @@
 		"slug": "lagavulin-matriarch",
 		"nameEn": "Lagavulin Matriarch",
 		"nameZh": "乐加维林族母",
+		"hpRange": "222 (A17+: 233)",
+		"intentPatternEn": "Begins asleep. Once awakened, it cycles Slash -> Disembowel -> Slash and Block -> Soul Siphon -> Slash.",
+		"intentPatternZh": "开场处于沉睡状态；被唤醒后会按 斩击 -> 开膛破肚 -> 斩击并获得格挡 -> 灵魂汲取 -> 斩击 的顺序循环。",
+		"specialMechanicsEn": "Starts with 12 Plating and Asleep 3. Waking it removes the passive lull, and Soul Siphon steals 2 Strength and 2 Dexterity from the player while gaining 2 Strength itself.",
+		"specialMechanicsZh": "开场自带 12 点镀层与 3 层沉睡。将其唤醒后就会进入完整循环；灵魂汲取会抽取玩家 2 点力量与 2 点敏捷，并让自己获得 2 点力量。",
+		"threatSummaryEn": "A high-HP elite/boss that swings between heavy hits, multihit pressure, block turns, and a major stat swing debuff. Plan resources for the wake-up sequence.",
+		"threatSummaryZh": "这是高血量的精英/首领型敌人，会在重击、多段攻击、带格挡回合和大幅属性摆动减益之间切换；唤醒后的连续压力需要提前规划资源。",
 		"moves": [
 			{
 				"id": "DISEMBOWEL",
@@ -1156,11 +1182,18 @@
 		"slug": "louse-progenitor",
 		"nameEn": "Louse Progenitor",
 		"nameZh": "虱虫之祖",
+		"hpRange": "134-141",
+		"intentPatternEn": "Loops Web Cannon -> Curl and Grow -> Pounce.",
+		"intentPatternZh": "会在 吐网炮 -> 蜷身成长 -> 扑击 之间循环。",
+		"specialMechanicsEn": "Starts with Curl Up. Curl and Grow grants a large block burst and 5 Strength; both Web Cannon and Pounce first uncurl it before attacking, and Web Cannon also applies 2 Frail.",
+		"specialMechanicsZh": "开场自带蜷缩。蜷身成长会一次性获得大量格挡并增加 5 点力量；吐网炮和扑击在攻击前都会先解除蜷缩，而吐网炮还会额外施加 2 层虚弱易伤中的虚弱（Frail）。",
+		"threatSummaryEn": "Its danger comes from tempo loss: the curl turn buys block and scaling, then the next attacks hit much harder while Frail makes defensive recovery awkward.",
+		"threatSummaryZh": "它的危险点在于节奏压迫：蜷身回合既拿格挡又成长，随后强化后的攻击会更痛，而 Frail 会让你更难靠格挡稳住局面。",
 		"moves": [
 			{
-				"id": "ACID_DUST",
-				"titleEn": "Acid Dust",
-				"titleZh": "酸性尘"
+				"id": "POUNCE",
+				"titleEn": "Pounce",
+				"titleZh": "扑击"
 			},
 			{
 				"id": "CURL_AND_GROW",

@@ -229,6 +229,27 @@ public sealed class EnemyEntry
     [JsonPropertyName("descriptionZh")]
     public string? DescriptionZh { get; set; }
 
+    [JsonPropertyName("hpRange")]
+    public string? HpRange { get; set; }
+
+    [JsonPropertyName("intentPatternEn")]
+    public string? IntentPatternEn { get; set; }
+
+    [JsonPropertyName("intentPatternZh")]
+    public string? IntentPatternZh { get; set; }
+
+    [JsonPropertyName("specialMechanicsEn")]
+    public string? SpecialMechanicsEn { get; set; }
+
+    [JsonPropertyName("specialMechanicsZh")]
+    public string? SpecialMechanicsZh { get; set; }
+
+    [JsonPropertyName("threatSummaryEn")]
+    public string? ThreatSummaryEn { get; set; }
+
+    [JsonPropertyName("threatSummaryZh")]
+    public string? ThreatSummaryZh { get; set; }
+
     [JsonPropertyName("moves")]
     public List<EnemyMoveEntry> Moves { get; set; } = new();
 
