@@ -2,7 +2,7 @@
 
 [English README](./README_en.md)
 
-一个面向《Slay the Spire 2》的专用 AI Mod。它不是通用聊天助手，而是一个被限制在游戏内知识、游戏内决策和游戏内可执行操作范围内的专用 Agent。
+一个Vibe coding的面向《Slay the Spire 2》的专用 AI Mod。它不是通用聊天助手，而是一个被限制在游戏内知识、游戏内决策和游戏内可执行操作范围内的专用 Agent。
 
 ## 项目定位
 

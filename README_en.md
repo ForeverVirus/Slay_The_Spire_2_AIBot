@@ -2,7 +2,7 @@
 
 [中文 README](./README.md)
 
-A dedicated AI mod for Slay the Spire 2. This is not a general-purpose chat assistant. It is a constrained in-game agent focused on game knowledge, game decisions, and game-executable actions only.
+A Vibe coding dedicated AI mod for Slay the Spire 2. This is not a general-purpose chat assistant. It is a constrained in-game agent focused on game knowledge, game decisions, and game-executable actions only.
 
 ## Project Positioning
 
