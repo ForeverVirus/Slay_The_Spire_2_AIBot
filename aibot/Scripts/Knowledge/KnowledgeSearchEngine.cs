@@ -377,6 +377,31 @@ public sealed class KnowledgeSearchEngine
             lines.Add($"类型：{power.PowerType}");
         }
 
+        if (!string.IsNullOrWhiteSpace(power.StackType))
+        {
+            lines.Add($"堆叠类型：{KnowledgeTextFormatter.FormatPlainText(power.StackType)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(power.StackRuleZh))
+        {
+            lines.Add($"叠加规则(ZH)：{KnowledgeTextFormatter.FormatPlainText(power.StackRuleZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(power.StackRuleEn))
+        {
+            lines.Add($"叠加规则(EN)：{KnowledgeTextFormatter.FormatPlainText(power.StackRuleEn)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(power.ResolutionRuleZh))
+        {
+            lines.Add($"结算规则(ZH)：{KnowledgeTextFormatter.FormatPlainText(power.ResolutionRuleZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(power.ResolutionRuleEn))
+        {
+            lines.Add($"结算规则(EN)：{KnowledgeTextFormatter.FormatPlainText(power.ResolutionRuleEn)}");
+        }
+
         if (!string.IsNullOrWhiteSpace(power.DescriptionZh))
         {
             lines.Add($"描述(ZH)：{KnowledgeTextFormatter.FormatPowerText(power, power.DescriptionZh)}");

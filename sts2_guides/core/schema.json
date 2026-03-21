@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "description": "Canonical Slay the Spire 2 knowledge base schema for core/custom layered loading.",
   "jsonFiles": {
     "characters.json": { "type": "CharacterGuideEntry[]", "key": "id" },
@@ -7,7 +7,14 @@
     "cards.json": { "type": "CardGuideEntry[]", "key": "slug" },
     "relics.json": { "type": "RelicGuideEntry[]", "key": "slug" },
     "potions.json": { "type": "PotionEntry[]", "key": "slug" },
-    "powers.json": { "type": "PowerEntry[]", "key": "slug" },
+    "powers.json": {
+      "type": "PowerEntry[]",
+      "key": "slug",
+      "notes": [
+        "PowerEntry supports stackType, stackRuleEn, stackRuleZh, resolutionRuleEn, and resolutionRuleZh.",
+        "Use stackType values that match in-game semantics such as Counter or Single."
+      ]
+    },
     "enemies.json": { "type": "EnemyEntry[]", "key": "slug" },
     "events.json": { "type": "EventEntry[]", "key": "slug" },
     "enchantments.json": { "type": "EnchantmentEntry[]", "key": "slug" },

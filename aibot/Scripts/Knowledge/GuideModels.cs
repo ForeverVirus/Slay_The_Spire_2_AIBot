@@ -160,6 +160,21 @@ public sealed class PowerEntry
     [JsonPropertyName("powerType")]
     public string? PowerType { get; set; }
 
+    [JsonPropertyName("stackType")]
+    public string? StackType { get; set; }
+
+    [JsonPropertyName("stackRuleEn")]
+    public string? StackRuleEn { get; set; }
+
+    [JsonPropertyName("stackRuleZh")]
+    public string? StackRuleZh { get; set; }
+
+    [JsonPropertyName("resolutionRuleEn")]
+    public string? ResolutionRuleEn { get; set; }
+
+    [JsonPropertyName("resolutionRuleZh")]
+    public string? ResolutionRuleZh { get; set; }
+
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
 
