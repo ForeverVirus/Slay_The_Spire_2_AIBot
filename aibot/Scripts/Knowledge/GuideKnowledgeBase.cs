@@ -37,6 +37,18 @@ public sealed class GuideKnowledgeBase
 
     public IReadOnlyList<RelicGuideEntry> Relics { get; private set; } = Array.Empty<RelicGuideEntry>();
 
+    public IReadOnlyList<PotionEntry> Potions { get; private set; } = Array.Empty<PotionEntry>();
+
+    public IReadOnlyList<PowerEntry> Powers { get; private set; } = Array.Empty<PowerEntry>();
+
+    public IReadOnlyList<EnemyEntry> Enemies { get; private set; } = Array.Empty<EnemyEntry>();
+
+    public IReadOnlyList<EventEntry> Events { get; private set; } = Array.Empty<EventEntry>();
+
+    public IReadOnlyList<EnchantmentEntry> Enchantments { get; private set; } = Array.Empty<EnchantmentEntry>();
+
+    public IReadOnlyList<MechanicRule> Mechanics { get; private set; } = Array.Empty<MechanicRule>();
+
     public GuideKnowledgeBase(string modDirectory, AiBotConfig? config = null)
     {
         RootDirectory = ResolveKnowledgeBaseDirectory(modDirectory);
@@ -54,10 +66,16 @@ public sealed class GuideKnowledgeBase
         Builds = LoadLayeredList<BuildGuideEntry>("builds.json", "builds_full.json", entry => entry.Id.ToString());
         Cards = LoadLayeredList<CardGuideEntry>("cards.json", "cards_full.json", entry => Normalize(entry.Slug));
         Relics = LoadLayeredList<RelicGuideEntry>("relics.json", "relics_full.json", entry => Normalize(entry.Slug));
+        Potions = LoadLayeredList<PotionEntry>("potions.json", "potions.json", entry => Normalize(entry.Slug));
+        Powers = LoadLayeredList<PowerEntry>("powers.json", "powers.json", entry => Normalize(entry.Slug));
+        Enemies = LoadLayeredList<EnemyEntry>("enemies.json", "enemies.json", entry => Normalize(entry.Slug));
+        Events = LoadLayeredList<EventEntry>("events.json", "events.json", entry => Normalize(entry.Slug));
+        Enchantments = LoadLayeredList<EnchantmentEntry>("enchantments.json", "enchantments.json", entry => Normalize(entry.Slug));
+        Mechanics = LoadLayeredList<MechanicRule>("game_mechanics.json", "game_mechanics.json", entry => Normalize(entry.Id));
         CharacterGuideMarkdownById = LoadCharacterGuideMarkdown();
         CoreMechanicsSummary = BuildCoreMechanicsSummary();
 
-        Log.Info($"[AiBot] Knowledge base loaded. Characters={Characters.Count}, CharacterGuides={CharacterGuideMarkdownById.Count}, Builds={Builds.Count}, Cards={Cards.Count}, Relics={Relics.Count}");
+        Log.Info($"[AiBot] Knowledge base loaded. Characters={Characters.Count}, CharacterGuides={CharacterGuideMarkdownById.Count}, Builds={Builds.Count}, Cards={Cards.Count}, Relics={Relics.Count}, Potions={Potions.Count}, Powers={Powers.Count}, Enemies={Enemies.Count}, Events={Events.Count}, Enchantments={Enchantments.Count}, Mechanics={Mechanics.Count}");
     }
 
     public IEnumerable<BuildGuideEntry> GetBuildsForCharacter(int characterId)
@@ -79,6 +97,58 @@ public sealed class GuideKnowledgeBase
         return Relics.FirstOrDefault(relic =>
             (characterId is null || relic.CharacterId is null || relic.CharacterId == characterId.Value) &&
             (Normalize(relic.Slug) == normalized || Normalize(relic.NameEn) == normalized || Normalize(relic.NameZh) == normalized));
+    }
+
+    public PotionEntry? FindPotion(string potionName)
+    {
+        return FindNamedEntry(Potions, potionName, potion => potion.Slug, potion => potion.NameEn, potion => potion.NameZh);
+    }
+
+    public PowerEntry? FindPower(string powerName)
+    {
+        return FindNamedEntry(Powers, powerName, power => power.Slug, power => power.NameEn, power => power.NameZh);
+    }
+
+    public EnemyEntry? FindEnemy(string enemyName)
+    {
+        return FindNamedEntry(Enemies, enemyName, enemy => enemy.Slug, enemy => enemy.NameEn, enemy => enemy.NameZh);
+    }
+
+    public EventEntry? FindEvent(string eventName)
+    {
+        return FindNamedEntry(Events, eventName, entry => entry.Slug, entry => entry.NameEn, entry => entry.NameZh);
+    }
+
+    public EnchantmentEntry? FindEnchantment(string enchantmentName)
+    {
+        return FindNamedEntry(Enchantments, enchantmentName, entry => entry.Slug, entry => entry.NameEn, entry => entry.NameZh);
+    }
+
+    public IReadOnlyList<MechanicRule> SearchMechanicRules(string query, int maxResults = 5)
+    {
+        var normalizedTerms = TokenizeSearchTerms(query);
+        if (normalizedTerms.Count == 0)
+        {
+            return Mechanics.Take(maxResults).ToList();
+        }
+
+        return Mechanics
+            .Select(rule => new
+            {
+                Rule = rule,
+                Score = ScoreTextMatch(normalizedTerms, rule.Id, rule.Title, rule.Summary)
+            })
+            .Where(entry => entry.Score > 0)
+            .OrderByDescending(entry => entry.Score)
+            .ThenBy(entry => entry.Rule.Title, StringComparer.OrdinalIgnoreCase)
+            .Take(maxResults)
+            .Select(entry => entry.Rule)
+            .ToList();
+    }
+
+    public IReadOnlyList<string> SearchMarkdownSnippets(IEnumerable<string> terms, int maxSnippets, int snippetLength, int? characterId = null)
+    {
+        return ExtractMarkdownSnippets(terms, maxSnippets, snippetLength, characterId);
     }
 
     public string BuildDeckSummary(IEnumerable<string> deckEntries, int characterId, int maxEntries = 12)
@@ -122,7 +192,13 @@ public sealed class GuideKnowledgeBase
         }
 
         var snippets = ExtractMarkdownSnippets(list, 4, 140, characterId);
-        var lines = list.Select(name => $"- {name}").ToList();
+        var lines = list.Select(name =>
+        {
+            var potion = FindPotion(name);
+            return potion is null
+                ? $"- {name}"
+                : $"- {name}: {(string.IsNullOrWhiteSpace(potion.Rarity) ? "Potion" : potion.Rarity)}; {TrimSnippet(potion.DescriptionEn ?? potion.Usage, 120)}";
+        }).ToList();
         if (snippets.Count > 0)
         {
             lines.Add("Relevant notes:");
@@ -295,6 +371,21 @@ public sealed class GuideKnowledgeBase
             .Replace("\"", string.Empty);
     }
 
+    public static IReadOnlyList<string> TokenizeSearchTerms(string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Array.Empty<string>();
+        }
+
+        return query
+            .Split(new[] { ' ', '　', ',', '，', '。', '.', '?', '？', '!', '！', ':', '：', '/', '\\', '|', '\t', '\r', '\n', '(', ')', '（', '）' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(token => token.Trim())
+            .Where(token => token.Length >= 2)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     private List<string> ExtractMarkdownSnippets(IEnumerable<string> terms, int maxSnippets, int snippetLength, int? characterId = null)
     {
         var normalizedTerms = terms
@@ -328,6 +419,83 @@ public sealed class GuideKnowledgeBase
             .Distinct()
             .Take(maxSnippets)
             .ToList();
+    }
+
+    private static TEntry? FindNamedEntry<TEntry>(IReadOnlyList<TEntry> entries, string query, params Func<TEntry, string?>[] selectors)
+        where TEntry : class
+    {
+        var normalized = Normalize(RemoveCountSuffix(query));
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return null;
+        }
+
+        return entries
+            .Select(entry => new
+            {
+                Entry = entry,
+                Score = ScoreSelectors(normalized, entry, selectors)
+            })
+            .Where(entry => entry.Score > 0)
+            .OrderByDescending(entry => entry.Score)
+            .Select(entry => entry.Entry)
+            .FirstOrDefault();
+    }
+
+    private static int ScoreSelectors<TEntry>(string normalizedQuery, TEntry entry, IEnumerable<Func<TEntry, string?>> selectors)
+    {
+        var score = 0;
+        foreach (var selector in selectors)
+        {
+            var value = selector(entry);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            var normalizedValue = Normalize(value);
+            if (normalizedValue == normalizedQuery)
+            {
+                score = Math.Max(score, 100);
+            }
+            else if (normalizedValue.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+            {
+                score = Math.Max(score, 70);
+            }
+            else if (normalizedQuery.Contains(normalizedValue, StringComparison.OrdinalIgnoreCase))
+            {
+                score = Math.Max(score, 40);
+            }
+        }
+
+        return score;
+    }
+
+    private static int ScoreTextMatch(IReadOnlyList<string> normalizedTerms, params string?[] values)
+    {
+        var score = 0;
+        foreach (var rawValue in values)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                continue;
+            }
+
+            var normalizedValue = Normalize(rawValue);
+            foreach (var term in normalizedTerms)
+            {
+                if (normalizedValue == Normalize(term))
+                {
+                    score += 5;
+                }
+                else if (normalizedValue.Contains(Normalize(term), StringComparison.OrdinalIgnoreCase))
+                {
+                    score += 2;
+                }
+            }
+        }
+
+        return score;
     }
 
     private string BuildCoreMechanicsSummary()

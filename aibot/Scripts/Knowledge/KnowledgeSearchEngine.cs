@@ -6,6 +6,14 @@ namespace aibot.Scripts.Knowledge;
 public sealed class KnowledgeSearchEngine
 {
     private readonly GuideKnowledgeBase _knowledgeBase;
+    private static readonly string[] CardMarkers = { "卡牌", "card", "牌" };
+    private static readonly string[] RelicMarkers = { "遗物", "relic" };
+    private static readonly string[] BuildMarkers = { "构筑", "build", "流派", "套路" };
+    private static readonly string[] PotionMarkers = { "药水", "potion", "瓶" };
+    private static readonly string[] EnemyMarkers = { "敌人", "enemy", "怪", "boss" };
+    private static readonly string[] PowerMarkers = { "power", "buff", "debuff", "状态", "增益", "减益" };
+    private static readonly string[] EventMarkers = { "事件", "event", "选项" };
+    private static readonly string[] EnchantmentMarkers = { "附魔", "enchantment" };
 
     public KnowledgeSearchEngine(GuideKnowledgeBase knowledgeBase)
     {
@@ -23,35 +31,70 @@ public sealed class KnowledgeSearchEngine
         var sections = new List<string>();
         var sources = new List<string>();
         var normalized = GuideKnowledgeBase.Normalize(query);
-        var cardName = ExtractNamedTarget(query, new[] { "卡牌", "card", "牌" });
-        var relicName = ExtractNamedTarget(query, new[] { "遗物", "relic" });
-        var buildName = ExtractNamedTarget(query, new[] { "构筑", "build", "流派", "套路" });
+        var terms = GuideKnowledgeBase.TokenizeSearchTerms(query);
+        var cardName = ExtractNamedTarget(query, CardMarkers);
+        var relicName = ExtractNamedTarget(query, RelicMarkers);
+        var buildName = ExtractNamedTarget(query, BuildMarkers);
+        var potionName = ExtractNamedTarget(query, PotionMarkers);
+        var enemyName = ExtractNamedTarget(query, EnemyMarkers);
+        var powerName = ExtractNamedTarget(query, PowerMarkers);
+        var eventName = ExtractNamedTarget(query, EventMarkers);
+        var enchantmentName = ExtractNamedTarget(query, EnchantmentMarkers);
 
-        if (!string.IsNullOrWhiteSpace(cardName))
+        var card = ResolveCard(cardName, terms, analysis.CharacterId);
+        if (card is not null)
         {
-            var card = _knowledgeBase.FindCard(cardName, analysis.CharacterId) ?? _knowledgeBase.FindCard(cardName);
-            if (card is not null)
-            {
-                sections.Add(BuildCardSection(card));
-                sources.Add($"card:{card.Slug}");
-            }
+            sections.Add(BuildCardSection(card));
+            sources.Add($"card:{card.Slug}:{card.Source}");
         }
 
-        if (!string.IsNullOrWhiteSpace(relicName))
+        var relic = ResolveRelic(relicName, terms, analysis.CharacterId);
+        if (relic is not null)
         {
-            var relic = _knowledgeBase.FindRelic(relicName, analysis.CharacterId) ?? _knowledgeBase.FindRelic(relicName);
-            if (relic is not null)
-            {
-                sections.Add(BuildRelicSection(relic));
-                sources.Add($"relic:{relic.Slug}");
-            }
+            sections.Add(BuildRelicSection(relic));
+            sources.Add($"relic:{relic.Slug}:{relic.Source}");
+        }
+
+        var potion = ResolvePotion(potionName, terms);
+        if (potion is not null)
+        {
+            sections.Add(BuildPotionSection(potion));
+            sources.Add($"potion:{potion.Slug}:{potion.Source}");
+        }
+
+        var enemy = ResolveEnemy(enemyName, terms);
+        if (enemy is not null)
+        {
+            sections.Add(BuildEnemySection(enemy));
+            sources.Add($"enemy:{enemy.Slug}:{enemy.Source}");
+        }
+
+        var power = ResolvePower(powerName, terms);
+        if (power is not null)
+        {
+            sections.Add(BuildPowerSection(power));
+            sources.Add($"power:{power.Slug}:{power.Source}");
+        }
+
+        var gameEvent = ResolveEvent(eventName, terms);
+        if (gameEvent is not null)
+        {
+            sections.Add(BuildEventSection(gameEvent));
+            sources.Add($"event:{gameEvent.Slug}:{gameEvent.Source}");
+        }
+
+        var enchantment = ResolveEnchantment(enchantmentName, terms);
+        if (enchantment is not null)
+        {
+            sections.Add(BuildEnchantmentSection(enchantment));
+            sources.Add($"enchantment:{enchantment.Slug}:{enchantment.Source}");
         }
 
         var buildMatches = FindBuildMatches(buildName ?? query, analysis.CharacterId);
         if (buildMatches.Count > 0)
         {
             sections.Add(BuildBuildSection(buildMatches));
-            sources.AddRange(buildMatches.Select(build => $"build:{build.Slug}"));
+            sources.AddRange(buildMatches.Select(build => $"build:{build.Slug}:{build.Source}"));
         }
 
         if (LooksLikeCharacterQuestion(normalized))
@@ -68,6 +111,13 @@ public sealed class KnowledgeSearchEngine
 
         if (LooksLikeMechanicsQuestion(normalized))
         {
+            var rules = _knowledgeBase.SearchMechanicRules(query, 4);
+            if (rules.Count > 0)
+            {
+                sections.Add(BuildMechanicsSection(rules));
+                sources.AddRange(rules.Select(rule => $"mechanic:{rule.Id}:{rule.Source}"));
+            }
+
             if (!string.IsNullOrWhiteSpace(_knowledgeBase.CoreMechanicsSummary))
             {
                 sections.Add("核心机制：\n" + _knowledgeBase.CoreMechanicsSummary);
@@ -75,7 +125,7 @@ public sealed class KnowledgeSearchEngine
             }
         }
 
-        var snippets = ExtractSnippets(query, analysis);
+        var snippets = ExtractSnippets(query, terms, analysis);
         if (snippets.Count > 0)
         {
             sections.Add("相关知识片段：\n" + string.Join("\n", snippets.Select(snippet => $"- {snippet}")));
@@ -112,11 +162,12 @@ public sealed class KnowledgeSearchEngine
             .ToList();
     }
 
-    private List<string> ExtractSnippets(string query, RunAnalysis analysis)
+    private List<string> ExtractSnippets(string query, IReadOnlyList<string> terms, RunAnalysis analysis)
     {
-        var candidates = Tokenize(query)
+        var candidates = terms
             .Concat(analysis.DeckCardNames.Take(4))
             .Concat(analysis.RelicNames.Take(3))
+            .Concat(analysis.PotionNames.Take(2))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(term => !string.IsNullOrWhiteSpace(term))
             .Take(6)
@@ -127,20 +178,84 @@ public sealed class KnowledgeSearchEngine
             return new List<string>();
         }
 
-        var digest = _knowledgeBase.BuildKnowledgeDigest(analysis.CharacterId, candidates, candidates, Array.Empty<string>(), 6, 4);
-        if (string.IsNullOrWhiteSpace(digest))
-        {
-            return new List<string>();
-        }
-
-        return digest
-            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(line => line.StartsWith("- ", StringComparison.Ordinal))
-            .Select(line => line[2..].Trim())
-            .Where(line => !line.EndsWith(':'))
+        return _knowledgeBase.SearchMarkdownSnippets(candidates, 6, 180, analysis.CharacterId)
             .Distinct()
             .Take(6)
             .ToList();
+    }
+
+    private CardGuideEntry? ResolveCard(string? explicitName, IReadOnlyList<string> terms, int characterId)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindCard(explicitName, characterId) ?? _knowledgeBase.FindCard(explicitName);
+        }
+
+        return terms
+            .Select(term => _knowledgeBase.FindCard(term, characterId) ?? _knowledgeBase.FindCard(term))
+            .FirstOrDefault(card => card is not null);
+    }
+
+    private RelicGuideEntry? ResolveRelic(string? explicitName, IReadOnlyList<string> terms, int characterId)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindRelic(explicitName, characterId) ?? _knowledgeBase.FindRelic(explicitName);
+        }
+
+        return terms
+            .Select(term => _knowledgeBase.FindRelic(term, characterId) ?? _knowledgeBase.FindRelic(term))
+            .FirstOrDefault(relic => relic is not null);
+    }
+
+    private PotionEntry? ResolvePotion(string? explicitName, IReadOnlyList<string> terms)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindPotion(explicitName);
+        }
+
+        return terms.Select(_knowledgeBase.FindPotion).FirstOrDefault(potion => potion is not null);
+    }
+
+    private EnemyEntry? ResolveEnemy(string? explicitName, IReadOnlyList<string> terms)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindEnemy(explicitName);
+        }
+
+        return terms.Select(_knowledgeBase.FindEnemy).FirstOrDefault(enemy => enemy is not null);
+    }
+
+    private PowerEntry? ResolvePower(string? explicitName, IReadOnlyList<string> terms)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindPower(explicitName);
+        }
+
+        return terms.Select(_knowledgeBase.FindPower).FirstOrDefault(power => power is not null);
+    }
+
+    private EventEntry? ResolveEvent(string? explicitName, IReadOnlyList<string> terms)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindEvent(explicitName);
+        }
+
+        return terms.Select(_knowledgeBase.FindEvent).FirstOrDefault(entry => entry is not null);
+    }
+
+    private EnchantmentEntry? ResolveEnchantment(string? explicitName, IReadOnlyList<string> terms)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitName))
+        {
+            return _knowledgeBase.FindEnchantment(explicitName);
+        }
+
+        return terms.Select(_knowledgeBase.FindEnchantment).FirstOrDefault(entry => entry is not null);
     }
 
     private static string BuildCardSection(CardGuideEntry card)
@@ -148,7 +263,8 @@ public sealed class KnowledgeSearchEngine
         var lines = new List<string>
         {
             $"卡牌：{card.NameEn} / {card.NameZh}",
-            $"类型：{card.CardType ?? "Unknown"}"
+            $"类型：{card.CardType ?? "Unknown"}",
+            $"来源：{card.Source}"
         };
 
         if (!string.IsNullOrWhiteSpace(card.DescriptionEn))
@@ -163,7 +279,8 @@ public sealed class KnowledgeSearchEngine
     {
         var lines = new List<string>
         {
-            $"遗物：{relic.NameEn} / {relic.NameZh}"
+            $"遗物：{relic.NameEn} / {relic.NameZh}",
+            $"来源：{relic.Source}"
         };
 
         if (!string.IsNullOrWhiteSpace(relic.DescriptionEn))
@@ -172,6 +289,116 @@ public sealed class KnowledgeSearchEngine
         }
 
         return string.Join("\n", lines);
+    }
+
+    private static string BuildPotionSection(PotionEntry potion)
+    {
+        var lines = new List<string>
+        {
+            $"药水：{potion.NameEn} / {potion.NameZh}",
+            $"来源：{potion.Source}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(potion.Rarity))
+        {
+            lines.Add($"稀有度：{potion.Rarity}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(potion.Usage))
+        {
+            lines.Add($"使用建议：{potion.Usage}");
+        }
+        else if (!string.IsNullOrWhiteSpace(potion.DescriptionEn))
+        {
+            lines.Add($"描述：{potion.DescriptionEn}");
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private static string BuildEnemySection(EnemyEntry enemy)
+    {
+        var lines = new List<string>
+        {
+            $"敌人：{enemy.NameEn} / {enemy.NameZh}",
+            $"来源：{enemy.Source}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(enemy.DescriptionEn))
+        {
+            lines.Add($"描述：{enemy.DescriptionEn}");
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private static string BuildPowerSection(PowerEntry power)
+    {
+        var lines = new List<string>
+        {
+            $"状态效果：{power.NameEn} / {power.NameZh}",
+            $"来源：{power.Source}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(power.PowerType))
+        {
+            lines.Add($"类型：{power.PowerType}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(power.DescriptionEn))
+        {
+            lines.Add($"描述：{power.DescriptionEn}");
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private static string BuildEventSection(EventEntry gameEvent)
+    {
+        var lines = new List<string>
+        {
+            $"事件：{gameEvent.NameEn} / {gameEvent.NameZh}",
+            $"来源：{gameEvent.Source}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionEn))
+        {
+            lines.Add($"说明：{gameEvent.DescriptionEn}");
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private static string BuildEnchantmentSection(EnchantmentEntry enchantment)
+    {
+        var lines = new List<string>
+        {
+            $"附魔：{enchantment.NameEn} / {enchantment.NameZh}",
+            $"来源：{enchantment.Source}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(enchantment.DescriptionEn))
+        {
+            lines.Add($"说明：{enchantment.DescriptionEn}");
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private static string BuildMechanicsSection(IReadOnlyList<MechanicRule> rules)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("机制规则：");
+        foreach (var rule in rules)
+        {
+            builder.AppendLine($"- {rule.Title} ({rule.Source})");
+            if (!string.IsNullOrWhiteSpace(rule.Summary))
+            {
+                builder.AppendLine($"  摘要：{rule.Summary}");
+            }
+        }
+
+        return builder.ToString().Trim();
     }
 
     private static string BuildBuildSection(IReadOnlyList<BuildGuideEntry> builds)
@@ -236,13 +463,6 @@ public sealed class KnowledgeSearchEngine
     {
         return !string.IsNullOrWhiteSpace(value)
             && GuideKnowledgeBase.Normalize(value).Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static IEnumerable<string> Tokenize(string query)
-    {
-        return query
-            .Split(new[] { ' ', '　', ',', '，', '。', '.', '?', '？', '!', '！', ':', '：', '/', '\\', '|', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(token => token.Length >= 2);
     }
 
     private static string? ExtractNamedTarget(string query, IEnumerable<string> markers)
