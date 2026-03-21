@@ -85,7 +85,7 @@ public sealed class AiBotRuntime : IDisposable
 
         _modDirectory = modDirectory;
         Config = AiBotConfigLoader.Load(modDirectory);
-        KnowledgeBase = new GuideKnowledgeBase(modDirectory);
+        KnowledgeBase = new GuideKnowledgeBase(modDirectory, Config);
         KnowledgeBase.Load();
         StateAnalyzer = new AiBotStateAnalyzer(KnowledgeBase);
 

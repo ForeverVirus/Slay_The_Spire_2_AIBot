@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using aibot.Scripts.Config;
 using MegaCrit.Sts2.Core.Logging;
 
 namespace aibot.Scripts.Knowledge;
@@ -12,6 +13,11 @@ public sealed class GuideKnowledgeBase
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true
     };
+
+    private readonly KnowledgeValidator _validator = new();
+    private readonly bool _enableCustomKnowledge;
+    private readonly string _customDirectoryName;
+    private readonly int _maxCustomFileSize;
 
     public string RootDirectory { get; }
 
@@ -31,20 +37,23 @@ public sealed class GuideKnowledgeBase
 
     public IReadOnlyList<RelicGuideEntry> Relics { get; private set; } = Array.Empty<RelicGuideEntry>();
 
-    public GuideKnowledgeBase(string modDirectory)
+    public GuideKnowledgeBase(string modDirectory, AiBotConfig? config = null)
     {
         RootDirectory = ResolveKnowledgeBaseDirectory(modDirectory);
+        _enableCustomKnowledge = config?.Knowledge.EnableCustom ?? true;
+        _customDirectoryName = string.IsNullOrWhiteSpace(config?.Knowledge.CustomDir) ? "custom" : config!.Knowledge.CustomDir;
+        _maxCustomFileSize = Math.Max(4096, config?.Knowledge.MaxCustomFileSize ?? 262144);
     }
 
     public void Load()
     {
         Directory.CreateDirectory(RootDirectory);
-        OverviewMarkdown = ReadTextIfExists("00_OVERVIEW.md");
-        KnowledgeMarkdown = ReadTextIfExists("sts2_knowledge_base.md");
-        Characters = LoadJson<List<CharacterGuideEntry>>("characters_full.json") ?? new List<CharacterGuideEntry>();
-        Builds = LoadJson<List<BuildGuideEntry>>("builds_full.json") ?? new List<BuildGuideEntry>();
-        Cards = LoadJson<List<CardGuideEntry>>("cards_full.json") ?? new List<CardGuideEntry>();
-        Relics = LoadJson<List<RelicGuideEntry>>("relics_full.json") ?? new List<RelicGuideEntry>();
+        OverviewMarkdown = ReadTextFromLayers("00_OVERVIEW.md");
+        KnowledgeMarkdown = ReadTextFromLayers("sts2_knowledge_base.md");
+        Characters = LoadLayeredList<CharacterGuideEntry>("characters.json", "characters_full.json", entry => entry.Id.ToString());
+        Builds = LoadLayeredList<BuildGuideEntry>("builds.json", "builds_full.json", entry => entry.Id.ToString());
+        Cards = LoadLayeredList<CardGuideEntry>("cards.json", "cards_full.json", entry => Normalize(entry.Slug));
+        Relics = LoadLayeredList<RelicGuideEntry>("relics.json", "relics_full.json", entry => Normalize(entry.Slug));
         CharacterGuideMarkdownById = LoadCharacterGuideMarkdown();
         CoreMechanicsSummary = BuildCoreMechanicsSummary();
 
@@ -370,7 +379,7 @@ public sealed class GuideKnowledgeBase
                 continue;
             }
 
-            var markdown = ReadTextIfExists(fileName);
+            var markdown = ReadTextFromLayers(fileName);
             if (!string.IsNullOrWhiteSpace(markdown))
             {
                 guides[character.Id] = markdown;
@@ -709,29 +718,119 @@ public sealed class GuideKnowledgeBase
         return workspaceFallback;
     }
 
-    private string ReadTextIfExists(string fileName)
+    private string ReadTextFromLayers(string fileName)
     {
-        var path = Path.Combine(RootDirectory, fileName);
-        return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        foreach (var path in EnumerateKnowledgePaths(fileName))
+        {
+            if (!File.Exists(path))
+            {
+                continue;
+            }
+
+            var validation = _validator.ValidateMarkdownFile(path, IsCustomPath(path), _maxCustomFileSize);
+            if (!validation.IsAccepted)
+            {
+                Log.Warn($"[AiBot.Knowledge] Skipping markdown file {path}: {validation.Reason}");
+                continue;
+            }
+
+            return File.ReadAllText(path);
+        }
+
+        return string.Empty;
     }
 
-    private T? LoadJson<T>(string fileName)
+    private List<TEntry> LoadLayeredList<TEntry>(string preferredName, string legacyName, Func<TEntry, string> keySelector)
+        where TEntry : class
     {
-        var path = Path.Combine(RootDirectory, fileName);
-        if (!File.Exists(path))
+        var merged = new Dictionary<string, TEntry>(StringComparer.OrdinalIgnoreCase);
+        foreach (var candidate in EnumerateJsonLayerCandidates(preferredName, legacyName))
         {
-            Log.Warn($"[AiBot] Missing knowledge file: {path}");
-            return default;
+            foreach (var path in EnumerateKnowledgePaths(candidate))
+            {
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                var validation = _validator.ValidateJsonFile(path, IsCustomPath(path), _maxCustomFileSize);
+                if (!validation.IsAccepted)
+                {
+                    Log.Warn($"[AiBot.Knowledge] Skipping json file {path}: {validation.Reason}");
+                    continue;
+                }
+
+                try
+                {
+                    var list = JsonSerializer.Deserialize<List<TEntry>>(File.ReadAllText(path), JsonOptions) ?? new List<TEntry>();
+                    foreach (var entry in list)
+                    {
+                        var key = keySelector(entry);
+                        if (string.IsNullOrWhiteSpace(key))
+                        {
+                            continue;
+                        }
+
+                        StampSource(entry, IsCustomPath(path) ? "custom" : "core");
+                        merged[key] = entry;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"[AiBot] Failed to load knowledge file '{path}': {ex}");
+                }
+            }
         }
 
-        try
+        return merged.Values.ToList();
+    }
+
+    private IEnumerable<string> EnumerateJsonLayerCandidates(string preferredName, string legacyName)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in new[] { preferredName, legacyName })
         {
-            return JsonSerializer.Deserialize<T>(File.ReadAllText(path), JsonOptions);
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"[AiBot] Failed to load knowledge file '{path}': {ex}");
-            return default;
+            if (seen.Add(name))
+            {
+                yield return name;
+            }
         }
     }
+
+    private IEnumerable<string> EnumerateKnowledgePaths(string fileName)
+    {
+        if (Path.IsPathRooted(fileName))
+        {
+            yield return fileName;
+            yield break;
+        }
+
+        var customPath = Path.Combine(RootDirectory, _customDirectoryName, fileName);
+        if (_enableCustomKnowledge)
+        {
+            yield return customPath;
+        }
+
+        yield return Path.Combine(RootDirectory, "core", fileName);
+        yield return Path.Combine(RootDirectory, fileName);
+        yield return Path.Combine(RootDirectory, "guides", fileName);
+        yield return Path.Combine(RootDirectory, "core", "guides", fileName);
+    }
+
+    private bool IsCustomPath(string path)
+    {
+        return path.Contains(Path.DirectorySeparatorChar + _customDirectoryName + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+            || path.Contains(Path.AltDirectorySeparatorChar + _customDirectoryName + Path.AltDirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void StampSource<TEntry>(TEntry entry, string source)
+        where TEntry : class
+    {
+        var property = typeof(TEntry).GetProperty("Source");
+        if (property?.CanWrite == true && property.PropertyType == typeof(string))
+        {
+            property.SetValue(entry, source);
+        }
+    }
+
 }

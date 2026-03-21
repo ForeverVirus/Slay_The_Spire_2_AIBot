@@ -21,6 +21,9 @@ public sealed class CharacterGuideEntry
 
     [JsonPropertyName("playstyleZh")]
     public string? PlaystyleZh { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
 }
 
 public sealed class BuildGuideEntry
@@ -60,6 +63,9 @@ public sealed class BuildGuideEntry
 
     [JsonPropertyName("tipsZh")]
     public string? TipsZh { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
 }
 
 public sealed class CardGuideEntry
@@ -81,6 +87,9 @@ public sealed class CardGuideEntry
 
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
 }
 
 public sealed class RelicGuideEntry
@@ -99,4 +108,121 @@ public sealed class RelicGuideEntry
 
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class PotionEntry
+{
+    [JsonPropertyName("slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameZh")]
+    public string? NameZh { get; set; }
+
+    [JsonPropertyName("rarity")]
+    public string? Rarity { get; set; }
+
+    [JsonPropertyName("usage")]
+    public string? Usage { get; set; }
+
+    [JsonPropertyName("descriptionEn")]
+    public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class PowerEntry
+{
+    [JsonPropertyName("slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameZh")]
+    public string? NameZh { get; set; }
+
+    [JsonPropertyName("powerType")]
+    public string? PowerType { get; set; }
+
+    [JsonPropertyName("descriptionEn")]
+    public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class EnemyEntry
+{
+    [JsonPropertyName("slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameZh")]
+    public string? NameZh { get; set; }
+
+    [JsonPropertyName("descriptionEn")]
+    public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class EventEntry
+{
+    [JsonPropertyName("slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameZh")]
+    public string? NameZh { get; set; }
+
+    [JsonPropertyName("descriptionEn")]
+    public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class EnchantmentEntry
+{
+    [JsonPropertyName("slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameEn")]
+    public string NameEn { get; set; } = string.Empty;
+
+    [JsonPropertyName("nameZh")]
+    public string? NameZh { get; set; }
+
+    [JsonPropertyName("descriptionEn")]
+    public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
+}
+
+public sealed class MechanicRule
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+
+    [JsonPropertyName("summary")]
+    public string? Summary { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "core";
 }
