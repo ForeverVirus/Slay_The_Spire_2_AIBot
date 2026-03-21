@@ -1,1 +1,80 @@
-[]
+[
+	{
+		"id": "energy-resource",
+		"title": "Energy is the per-turn card resource",
+		"summary": "Energy is the resource used each turn to play cards. Most cards cost between 0 and 3 energy.",
+		"source": "core"
+	},
+	{
+		"id": "block-mitigation",
+		"title": "Block reduces incoming damage",
+		"summary": "Block reduces incoming damage. According to the core guide, block is normally removed at the end of the turn.",
+		"source": "core"
+	},
+	{
+		"id": "draw-mechanic",
+		"title": "Draw adds cards from the draw pile to hand",
+		"summary": "Draw means taking cards from the draw pile into the hand. The general turn flow guide states the player draws 5 cards at the start of a turn.",
+		"source": "core"
+	},
+	{
+		"id": "x-cost-cards",
+		"title": "X-cost cards spend all remaining energy",
+		"summary": "The knowledge base states that X-cost cards consume all remaining energy when played.",
+		"source": "core"
+	},
+	{
+		"id": "turn-flow-start",
+		"title": "Turn start grants energy and draws cards",
+		"summary": "At turn start, start-of-turn effects resolve, the player gains energy, and 5 cards are drawn.",
+		"source": "core"
+	},
+	{
+		"id": "turn-flow-end",
+		"title": "Turn end discards hand and clears block",
+		"summary": "At turn end, end-of-turn effects resolve, the hand is discarded, and block resets to zero according to the current guide text.",
+		"source": "core"
+	},
+	{
+		"id": "enemy-intent-preview",
+		"title": "Enemy intents preview the next action",
+		"summary": "Enemies follow predefined action patterns and their intent icons can be used to predict whether the next action is attack, defense, buff, or debuff oriented.",
+		"source": "core"
+	},
+	{
+		"id": "deck-thinning-principle",
+		"title": "Deck thinning is a core build principle",
+		"summary": "The strategy guide recommends removing starter cards and keeping a smaller pool of higher-quality cards when possible.",
+		"source": "core"
+	},
+	{
+		"id": "energy-curve-principle",
+		"title": "Energy curve should balance low and high cost cards",
+		"summary": "The strategy guide recommends balancing cheap and expensive cards so that turns remain playable and efficient.",
+		"source": "core"
+	},
+	{
+		"id": "defense-source-principle",
+		"title": "A stable defensive source is required",
+		"summary": "The general build principles explicitly recommend making sure the deck has a reliable source of block or other defense.",
+		"source": "core"
+	},
+	{
+		"id": "defect-orb-system",
+		"title": "Defect uses an orb system with multiple orb types",
+		"summary": "The overview guide states that Defect can have up to 3 active orbs at once, with lightning, frost, dark, and plasma as the listed orb types, and that passive orb effects matter.",
+		"source": "core"
+	},
+	{
+		"id": "ironclad-strength-scaling",
+		"title": "Ironclad strength scaling rewards repeated attacks",
+		"summary": "The Ironclad overview emphasizes that strength stacking increases attack damage and that multi-hit attacks gain especially high value from this scaling.",
+		"source": "core"
+	},
+	{
+		"id": "silent-poison-plan",
+		"title": "Silent poison deals repeat end-of-turn damage",
+		"summary": "The Silent guide frames poison as a core plan that stacks damage over time, with Catalyst and Noxious Fumes highlighted as key cards in that strategy.",
+		"source": "core"
+	}
+]

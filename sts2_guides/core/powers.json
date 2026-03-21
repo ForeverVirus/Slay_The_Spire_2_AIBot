@@ -1,1 +1,42 @@
-[]
+[
+	{
+		"slug": "strength",
+		"nameEn": "Strength",
+		"nameZh": "力量",
+		"powerType": "Buff",
+		"descriptionEn": "Each point of Strength increases attack card damage by 1.",
+		"source": "core"
+	},
+	{
+		"slug": "dexterity",
+		"nameEn": "Dexterity",
+		"nameZh": "敏捷",
+		"powerType": "Buff",
+		"descriptionEn": "Each point of Dexterity increases block gained from block cards by 1.",
+		"source": "core"
+	},
+	{
+		"slug": "vulnerable",
+		"nameEn": "Vulnerable",
+		"nameZh": "易伤",
+		"powerType": "Debuff",
+		"descriptionEn": "Vulnerable makes the target take 50% more damage for X turns.",
+		"source": "core"
+	},
+	{
+		"slug": "weak",
+		"nameEn": "Weak",
+		"nameZh": "虚弱",
+		"powerType": "Debuff",
+		"descriptionEn": "Weak reduces damage dealt by 25% for X turns.",
+		"source": "core"
+	},
+	{
+		"slug": "poison",
+		"nameEn": "Poison",
+		"nameZh": "毒素",
+		"powerType": "Debuff",
+		"descriptionEn": "Poison deals damage equal to its current amount at the end of each turn, then decreases by 1.",
+		"source": "core"
+	}
+]
