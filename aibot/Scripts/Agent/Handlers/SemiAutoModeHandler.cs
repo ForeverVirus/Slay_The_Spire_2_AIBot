@@ -57,7 +57,7 @@ public sealed class SemiAutoModeHandler : IAgentModeHandler
                 : CancelPendingExecution();
         }
 
-        var intent = _intentParser.Parse(input);
+        var intent = await _intentParser.ParseWithFallbackAsync(input, cancellationToken);
         if (intent.Kind == ParsedIntentKind.Unknown)
         {
             var help = "未识别你的指令。你可以尝试：查看卡组、查看遗物、分析局势、打出 Strike、使用药水、结束回合、领取奖励。";
@@ -223,6 +223,7 @@ public sealed class SemiAutoModeHandler : IAgentModeHandler
 
     public void Dispose()
     {
+        _intentParser.Dispose();
     }
 
     private enum PendingCommandKind

@@ -24,11 +24,13 @@ public sealed class IntentParser
 {
     private readonly AiBotRuntime _runtime;
     private readonly AgentSkillRegistry _registry;
+    private readonly AgentLlmBridge? _llmBridge;
 
     public IntentParser(AiBotRuntime runtime, AgentSkillRegistry registry)
     {
         _runtime = runtime;
         _registry = registry;
+        _llmBridge = runtime.Config.CanUseCloud ? new AgentLlmBridge(runtime.Config) : null;
     }
 
     public ParsedIntent Parse(string input)
@@ -149,6 +151,44 @@ public sealed class IntentParser
         return new ParsedIntent(ParsedIntentKind.Unknown, string.Empty);
     }
 
+    public async Task<ParsedIntent> ParseWithFallbackAsync(string input, CancellationToken cancellationToken)
+    {
+        var parsed = Parse(input);
+        if (parsed.Kind != ParsedIntentKind.Unknown)
+        {
+            return parsed;
+        }
+
+        if (_llmBridge is null)
+        {
+            return parsed;
+        }
+
+        var analysis = _runtime.GetCurrentAnalysis();
+        var availableSkills = _registry.GetAvailableSkills(AgentMode.SemiAuto)
+            .Select(skill => skill.Name)
+            .ToList();
+        var llmIntent = await _llmBridge.RecognizeSkillIntentAsync(input, analysis, availableSkills, cancellationToken);
+        if (llmIntent is null || string.IsNullOrWhiteSpace(llmIntent.SkillName))
+        {
+            return parsed;
+        }
+
+        var skill = _registry.FindSkillByName(llmIntent.SkillName);
+        if (skill is null)
+        {
+            return parsed;
+        }
+
+        var normalizedParameters = NormalizeSkillParameters(skill.Name, llmIntent.Parameters);
+        return new ParsedIntent(ParsedIntentKind.Skill, skill.Name, normalizedParameters, input);
+    }
+
+    public void Dispose()
+    {
+        _llmBridge?.Dispose();
+    }
+
     private string? ResolveHandCardName(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -208,5 +248,15 @@ public sealed class IntentParser
         }
 
         return null;
+    }
+
+    private AgentSkillParameters NormalizeSkillParameters(string skillName, AgentSkillParameters parameters)
+    {
+        return skillName switch
+        {
+            "play_card" => parameters with { CardName = ResolveHandCardName(parameters.CardName) ?? parameters.CardName },
+            "use_potion" => parameters with { PotionName = ResolvePotionName(parameters.PotionName) ?? parameters.PotionName },
+            _ => parameters
+        };
     }
 }
