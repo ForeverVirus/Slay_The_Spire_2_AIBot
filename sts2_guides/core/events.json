@@ -29,6 +29,29 @@
     "nameZh": "战痕累累的训练假人",
     "descriptionEn": "As you approach, it begins to rumble and fizzle and lights up brilliantly!\n\n“[jitter]BZZZT![/jitter] TIME TO TRAIN!!! YOU HAVE [blue]3 TURNS[/blue] TO DEFEAT ME!\nCHOOSE A SETTING OR FACE [red]LETHAL HUMILIATION[/red].\nHere are the options:”\n\nAfter the terrifying message, the dummy carefully reads out detailed instructions.\n\nWhat do you choose?",
     "descriptionZh": "当你靠近时，它突然开始轰鸣，滋滋作响，随后爆发出耀眼的光芒！\n\n[b]“[jitter]滋滋！[/jitter] 训练时间到！！！你有[blue]3个回合[/blue]的时间来击败我！\n选择一个档位，否则就准备好面对[red]致命的羞辱[/red]吧。[/b]\n以下是可选方案：”\n\n在发布完这段恐怖的宣言后，假人开始认真地读出详细的指令。\n\n要选哪一个呢？",
+  "options": [
+    {
+      "id": "SETTING_1",
+      "titleEn": "Setting 1",
+      "titleZh": "档位 1",
+      "resultEn": "Start the easiest 3-turn dummy fight. On victory, receive a random potion reward.",
+      "resultZh": "进入最简单的 3 回合训练战。若获胜，奖励一瓶随机药水。"
+    },
+    {
+      "id": "SETTING_2",
+      "titleEn": "Setting 2",
+      "titleZh": "档位 2",
+      "resultEn": "Start a harder dummy fight. On victory, upgrade up to 2 random upgradable cards in the deck.",
+      "resultZh": "进入更难的训练战。若获胜，牌组中最多 2 张可升级卡会被随机升级。"
+    },
+    {
+      "id": "SETTING_3",
+      "titleEn": "Setting 3",
+      "titleZh": "档位 3",
+      "resultEn": "Start the hardest dummy fight. On victory, obtain the next relic from the relic reward flow. If time runs out, the event ends with no reward.",
+      "resultZh": "进入最难的训练战。若获胜，获得下一件遗物奖励流中的遗物；若超时失败，则事件直接结束且没有奖励。"
+    }
+  ],
     "source": "core"
   },
   {
@@ -77,6 +100,24 @@
     "nameZh": "水晶球",
     "descriptionEn": "[sine][blue]“I predicted you'd enter...!”[/blue][/sine]\n\nA [jitter]raspy[/jitter] voice calls out as you enter a [purple]mystic hut[/purple].\n\n[sine][blue]“Your destiny has brought you here. We must uncover your future and fortunes so you can SAVE US ALL!!”[/blue][/sine]\n“Okay, here are the options for the [gold]Crystal Sphere reading[/gold]. Be sure to sign this waiver as well,” she says while bringing out pen and parchment.",
     "descriptionZh": "[sine][blue]“我预见到了你的到来…！”[/blue][/sine]\n\n当你走进一间[purple]神秘小屋[/purple]时，一个[jitter]沙哑[/jitter]的声音传了过来。\n\n[sine][blue]“你的命运指引你来到此处。我们必须揭开你的未来与运势，这样你才能拯救我们所有人！！”[/blue][/sine]\n“好啦，这是进行[gold]水晶球占卜[/gold]的几个选项。另外，记得把这份免责协议也签了，”她一边说着，一边拿出了笔和羊皮纸。",
+  "triggerRestrictionEn": "Only appears after Act 1, and every player in the run must have at least 100 gold.",
+  "triggerRestrictionZh": "只会在第一幕之后出现，且当前 run 中所有玩家都至少拥有 100 金币。",
+  "options": [
+    {
+      "id": "UNCOVER_FUTURE",
+      "titleEn": "Uncover Future",
+      "titleZh": "揭开未来",
+      "resultEn": "Pay 51-100 gold, then play a 3-pick Crystal Sphere minigame to uncover future rewards.",
+      "resultZh": "支付 51-100 金币后，进行一次 3 次选择的水晶球小游戏来获取未来奖励。"
+    },
+    {
+      "id": "PAYMENT_PLAN",
+      "titleEn": "Payment Plan",
+      "titleZh": "分期付款",
+      "resultEn": "Add a Debt curse to the deck, then play a larger 6-pick Crystal Sphere minigame.",
+      "resultZh": "向牌组加入一张 Debt 诅咒牌，然后进行一次更大的 6 次选择水晶球小游戏。"
+    }
+  ],
     "source": "core"
   },
   {
@@ -85,6 +126,29 @@
     "nameZh": "茂密的植被",
     "descriptionEn": "Having taken the wrong path for a good while, you find yourself in a thick jungle of [green]ferns[/green], [green]shrubs[/green], and [green]vines[/green]. Especially [green]vines[/green]. Exhaustion sets in, and a dark thought comes to mind:\n\n[sine][purple]“You are lost, unprepared, and the inevitability of death is approaching.”[/purple][/sine]\n\nWhat do you do?",
     "descriptionZh": "你在错路上走了一段时间之后，你发现自己置身于一片由[green]蕨类[/green]、[green]灌木[/green]和[green]藤蔓[/green]构成的茂密丛林中。尤其是[green]藤蔓[/green]。精疲力竭的感觉油然而生，一个可怕的念头随之浮现在脑海里：\n\n[sine][purple]“你迷路了，毫无防备，而死亡的阴影正悄然逼近。”[/purple][/sine]\n\n你要怎么办呢？",
+  "options": [
+    {
+      "id": "TRUDGE_ON",
+      "titleEn": "Trudge On",
+      "titleZh": "继续跋涉",
+      "resultEn": "Remove 1 card from the deck, then take 11 HP loss.",
+      "resultZh": "从牌组中移除 1 张卡，然后失去 11 点生命。"
+    },
+    {
+      "id": "REST",
+      "titleEn": "Rest",
+      "titleZh": "休息",
+      "resultEn": "Heal as if at a rest site, but then the event advances into a forced combat choice.",
+      "resultZh": "获得一次相当于休息点回血的恢复，但随后事件会推进到一场强制战斗。"
+    },
+    {
+      "id": "FIGHT",
+      "titleEn": "Fight",
+      "titleZh": "战斗",
+      "resultEn": "This option only appears after choosing Rest; it starts the Dense Vegetation event encounter and ends the event afterward.",
+      "resultZh": "这个选项只会在选择休息后出现；它会开启茂密植被事件战斗，并在战斗后结束事件。"
+    }
+  ],
     "source": "core"
   },
   {
@@ -117,6 +181,22 @@
     "nameZh": "淹水灯塔",
     "descriptionEn": "Crossing a dreamscape of rocks and still waters, you emerge to face a [sine]sinking lighthouse[/sine] emitting [purple]anti-light[/purple].\n\nYou can bottle up the [aqua][sine]eerily-glowing water[/sine][/aqua] that has pooled here or climb up the dilapidated structure to retrieve the [gold]lens[/gold].",
     "descriptionZh": "穿过一片由岩石与静水构成的梦幻之境，你来到了一座散发着[purple]逆流光[/purple]的[sine]沉没灯塔[/sine]前。\n\n你可以把积聚在此的[aqua][sine]诡异发光水[/sine][/aqua]装进瓶子里，或者爬上这座破败的建筑，取下其中的[gold]透镜[/gold]。",
+  "options": [
+    {
+      "id": "BOTTLE",
+      "titleEn": "Bottle",
+      "titleZh": "装瓶",
+      "resultEn": "Gain a Glowwater Potion reward with no HP cost.",
+      "resultZh": "无生命代价地获得一瓶 Glowwater Potion 药水奖励。"
+    },
+    {
+      "id": "CLIMB",
+      "titleEn": "Climb",
+      "titleZh": "攀爬",
+      "resultEn": "Lose 13 max HP, then obtain the Fresnel Lens relic.",
+      "resultZh": "失去 13 点最大生命值，然后获得 Fresnel Lens 遗物。"
+    }
+  ],
     "source": "core"
   },
   {

@@ -473,6 +473,16 @@ public sealed class KnowledgeSearchEngine
             $"来源：{gameEvent.Source}"
         };
 
+        if (!string.IsNullOrWhiteSpace(gameEvent.TriggerRestrictionZh))
+        {
+            lines.Add($"触发限制(ZH)：{KnowledgeTextFormatter.FormatPlainText(gameEvent.TriggerRestrictionZh)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(gameEvent.TriggerRestrictionEn))
+        {
+            lines.Add($"Trigger Restriction(EN)：{KnowledgeTextFormatter.FormatPlainText(gameEvent.TriggerRestrictionEn)}");
+        }
+
         if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionZh))
         {
             lines.Add($"说明(ZH)：{KnowledgeTextFormatter.FormatEventText(gameEvent, gameEvent.DescriptionZh)}");
@@ -481,6 +491,44 @@ public sealed class KnowledgeSearchEngine
         if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionEn))
         {
             lines.Add($"说明(EN)：{KnowledgeTextFormatter.FormatEventText(gameEvent, gameEvent.DescriptionEn)}");
+        }
+
+        if (gameEvent.Options.Count > 0)
+        {
+            lines.Add("选项：");
+            foreach (var option in gameEvent.Options.Take(6))
+            {
+                var title = string.IsNullOrWhiteSpace(option.TitleZh)
+                    ? option.TitleEn ?? option.Id
+                    : $"{option.TitleEn} / {option.TitleZh}";
+                var entry = string.IsNullOrWhiteSpace(option.Id)
+                    ? title
+                    : $"{option.Id}: {title}";
+
+                var resultZh = string.IsNullOrWhiteSpace(option.ResultZh)
+                    ? null
+                    : KnowledgeTextFormatter.FormatPlainText(option.ResultZh);
+                var resultEn = string.IsNullOrWhiteSpace(option.ResultEn)
+                    ? null
+                    : KnowledgeTextFormatter.FormatPlainText(option.ResultEn);
+
+                if (!string.IsNullOrWhiteSpace(resultZh))
+                {
+                    entry += $"；结果(ZH)：{Trim(resultZh, 100)}";
+                }
+
+                if (!string.IsNullOrWhiteSpace(resultEn))
+                {
+                    entry += $"；结果(EN)：{Trim(resultEn, 100)}";
+                }
+
+                lines.Add($"- {entry}");
+            }
+
+            if (gameEvent.Options.Count > 6)
+            {
+                lines.Add($"- 其余 {gameEvent.Options.Count - 6} 个选项省略");
+            }
         }
 
         return string.Join("\n", lines);

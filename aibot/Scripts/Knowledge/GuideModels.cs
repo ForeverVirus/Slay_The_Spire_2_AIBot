@@ -274,8 +274,35 @@ public sealed class EventEntry
     [JsonPropertyName("descriptionZh")]
     public string? DescriptionZh { get; set; }
 
+    [JsonPropertyName("triggerRestrictionEn")]
+    public string? TriggerRestrictionEn { get; set; }
+
+    [JsonPropertyName("triggerRestrictionZh")]
+    public string? TriggerRestrictionZh { get; set; }
+
+    [JsonPropertyName("options")]
+    public List<EventOptionGuideEntry> Options { get; set; } = new();
+
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
+}
+
+public sealed class EventOptionGuideEntry
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("titleEn")]
+    public string? TitleEn { get; set; }
+
+    [JsonPropertyName("titleZh")]
+    public string? TitleZh { get; set; }
+
+    [JsonPropertyName("resultEn")]
+    public string? ResultEn { get; set; }
+
+    [JsonPropertyName("resultZh")]
+    public string? ResultZh { get; set; }
 }
 
 public sealed class EnchantmentEntry
