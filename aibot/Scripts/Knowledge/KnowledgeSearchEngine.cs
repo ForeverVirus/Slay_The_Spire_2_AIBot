@@ -144,22 +144,7 @@ public sealed class KnowledgeSearchEngine
 
     private List<BuildGuideEntry> FindBuildMatches(string query, int characterId)
     {
-        var normalized = GuideKnowledgeBase.Normalize(query);
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return _knowledgeBase.GetBuildsForCharacter(characterId).Take(3).ToList();
-        }
-
-        return _knowledgeBase.Builds
-            .Where(build => build.CharacterId == characterId)
-            .Where(build => Matches(build.NameEn, normalized)
-                || Matches(build.NameZh, normalized)
-                || Matches(build.Slug, normalized)
-                || Matches(build.SummaryEn, normalized)
-                || Matches(build.StrategyEn, normalized)
-                || Matches(build.TipsEn, normalized))
-            .Take(3)
-            .ToList();
+        return _knowledgeBase.FindBuilds(query, characterId, 3).ToList();
     }
 
     private List<string> ExtractSnippets(string query, IReadOnlyList<string> terms, RunAnalysis analysis)
@@ -269,7 +254,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(card.DescriptionEn))
         {
-            lines.Add($"描述：{card.DescriptionEn}");
+            lines.Add($"描述(EN)：{card.DescriptionEn}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(card.DescriptionZh))
+        {
+            lines.Add($"描述(ZH)：{card.DescriptionZh}");
         }
 
         return string.Join("\n", lines);
@@ -285,7 +275,12 @@ public sealed class KnowledgeSearchEngine
 
         if (!string.IsNullOrWhiteSpace(relic.DescriptionEn))
         {
-            lines.Add($"描述：{relic.DescriptionEn}");
+            lines.Add($"描述(EN)：{relic.DescriptionEn}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(relic.DescriptionZh))
+        {
+            lines.Add($"描述(ZH)：{relic.DescriptionZh}");
         }
 
         return string.Join("\n", lines);
@@ -308,9 +303,15 @@ public sealed class KnowledgeSearchEngine
         {
             lines.Add($"使用建议：{potion.Usage}");
         }
-        else if (!string.IsNullOrWhiteSpace(potion.DescriptionEn))
+
+        if (!string.IsNullOrWhiteSpace(potion.DescriptionZh))
         {
-            lines.Add($"描述：{potion.DescriptionEn}");
+            lines.Add($"描述(ZH)：{potion.DescriptionZh}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(potion.DescriptionEn))
+        {
+            lines.Add($"描述(EN)：{potion.DescriptionEn}");
         }
 
         return string.Join("\n", lines);
@@ -324,9 +325,40 @@ public sealed class KnowledgeSearchEngine
             $"来源：{enemy.Source}"
         };
 
+        if (!string.IsNullOrWhiteSpace(enemy.DescriptionZh))
+        {
+            lines.Add($"描述(ZH)：{enemy.DescriptionZh}");
+        }
+
         if (!string.IsNullOrWhiteSpace(enemy.DescriptionEn))
         {
-            lines.Add($"描述：{enemy.DescriptionEn}");
+            lines.Add($"描述(EN)：{enemy.DescriptionEn}");
+        }
+
+        if (enemy.Moves.Count > 0)
+        {
+            lines.Add("技能：");
+            foreach (var move in enemy.Moves.Take(8))
+            {
+                var title = string.IsNullOrWhiteSpace(move.TitleZh)
+                    ? move.TitleEn ?? move.Id
+                    : $"{move.TitleEn} / {move.TitleZh}";
+                var entry = string.IsNullOrWhiteSpace(move.Id)
+                    ? title
+                    : $"{move.Id}: {title}";
+                var banter = string.IsNullOrWhiteSpace(move.BanterZh) ? move.BanterEn : move.BanterZh;
+                if (!string.IsNullOrWhiteSpace(banter))
+                {
+                    entry += $"；台词：{Trim(banter, 80)}";
+                }
+
+                lines.Add($"- {entry}");
+            }
+
+            if (enemy.Moves.Count > 8)
+            {
+                lines.Add($"- 其余 {enemy.Moves.Count - 8} 个技能省略");
+            }
         }
 
         return string.Join("\n", lines);
@@ -345,9 +377,14 @@ public sealed class KnowledgeSearchEngine
             lines.Add($"类型：{power.PowerType}");
         }
 
+        if (!string.IsNullOrWhiteSpace(power.DescriptionZh))
+        {
+            lines.Add($"描述(ZH)：{power.DescriptionZh}");
+        }
+
         if (!string.IsNullOrWhiteSpace(power.DescriptionEn))
         {
-            lines.Add($"描述：{power.DescriptionEn}");
+            lines.Add($"描述(EN)：{power.DescriptionEn}");
         }
 
         return string.Join("\n", lines);
@@ -361,9 +398,14 @@ public sealed class KnowledgeSearchEngine
             $"来源：{gameEvent.Source}"
         };
 
+        if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionZh))
+        {
+            lines.Add($"说明(ZH)：{gameEvent.DescriptionZh}");
+        }
+
         if (!string.IsNullOrWhiteSpace(gameEvent.DescriptionEn))
         {
-            lines.Add($"说明：{gameEvent.DescriptionEn}");
+            lines.Add($"说明(EN)：{gameEvent.DescriptionEn}");
         }
 
         return string.Join("\n", lines);
@@ -377,9 +419,14 @@ public sealed class KnowledgeSearchEngine
             $"来源：{enchantment.Source}"
         };
 
+        if (!string.IsNullOrWhiteSpace(enchantment.DescriptionZh))
+        {
+            lines.Add($"说明(ZH)：{enchantment.DescriptionZh}");
+        }
+
         if (!string.IsNullOrWhiteSpace(enchantment.DescriptionEn))
         {
-            lines.Add($"说明：{enchantment.DescriptionEn}");
+            lines.Add($"说明(EN)：{enchantment.DescriptionEn}");
         }
 
         return string.Join("\n", lines);
@@ -408,14 +455,22 @@ public sealed class KnowledgeSearchEngine
         foreach (var build in builds)
         {
             builder.AppendLine($"- {build.NameEn} / {build.NameZh}");
+            if (!string.IsNullOrWhiteSpace(build.SummaryZh))
+            {
+                builder.AppendLine($"  摘要(ZH)：{build.SummaryZh}");
+            }
             if (!string.IsNullOrWhiteSpace(build.SummaryEn))
             {
-                builder.AppendLine($"  摘要：{build.SummaryEn}");
+                builder.AppendLine($"  摘要(EN)：{build.SummaryEn}");
             }
 
+            if (!string.IsNullOrWhiteSpace(build.TipsZh))
+            {
+                builder.AppendLine($"  要点(ZH)：{build.TipsZh}");
+            }
             if (!string.IsNullOrWhiteSpace(build.TipsEn))
             {
-                builder.AppendLine($"  要点：{build.TipsEn}");
+                builder.AppendLine($"  要点(EN)：{build.TipsEn}");
             }
         }
 

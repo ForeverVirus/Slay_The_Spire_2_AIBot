@@ -1,42 +1,155 @@
 [
-	{
-		"slug": "strength",
-		"nameEn": "Strength",
-		"nameZh": "力量",
-		"powerType": "Buff",
-		"descriptionEn": "Each point of Strength increases attack card damage by 1.",
-		"source": "core"
-	},
-	{
-		"slug": "dexterity",
-		"nameEn": "Dexterity",
-		"nameZh": "敏捷",
-		"powerType": "Buff",
-		"descriptionEn": "Each point of Dexterity increases block gained from block cards by 1.",
-		"source": "core"
-	},
-	{
-		"slug": "vulnerable",
-		"nameEn": "Vulnerable",
-		"nameZh": "易伤",
-		"powerType": "Debuff",
-		"descriptionEn": "Vulnerable makes the target take 50% more damage for X turns.",
-		"source": "core"
-	},
-	{
-		"slug": "weak",
-		"nameEn": "Weak",
-		"nameZh": "虚弱",
-		"powerType": "Debuff",
-		"descriptionEn": "Weak reduces damage dealt by 25% for X turns.",
-		"source": "core"
-	},
-	{
-		"slug": "poison",
-		"nameEn": "Poison",
-		"nameZh": "毒素",
-		"powerType": "Debuff",
-		"descriptionEn": "Poison deals damage equal to its current amount at the end of each turn, then decreases by 1.",
-		"source": "core"
-	}
+  {
+    "slug": "artifact",
+    "nameEn": "Artifact",
+    "nameZh": "人工制品",
+    "powerType": "Buff",
+    "descriptionEn": "[gold]Negates[/gold] [blue]{Amount}[/blue] {Amount:plural:debuff|debuffs}.",
+    "descriptionZh": "[gold]免疫[/gold][blue]{Amount}[/blue]次负面效果。",
+    "source": "core"
+  },
+  {
+    "slug": "barricade",
+    "nameEn": "Barricade",
+    "nameZh": "壁垒",
+    "powerType": "Buff",
+    "descriptionEn": "[gold]Block[/gold] is not removed at the start of {ApplierName.StringValue:cond:[gold]{OwnerName}'s[/gold]|your} turn.",
+    "descriptionZh": "[gold]格挡[/gold]不会在{ApplierName.StringValue:cond:[gold]{OwnerName}的[/gold]|你的}回合开始时被移除。",
+    "source": "core"
+  },
+  {
+    "slug": "blur",
+    "nameEn": "Blur",
+    "nameZh": "残影",
+    "powerType": "Buff",
+    "descriptionEn": "[gold]Block[/gold] is not removed at the start of your next {Amount:plural:turn|{} turns}.",
+    "descriptionZh": "你的下{Amount}个回合开始时[gold]格挡[/gold]不会消失。",
+    "source": "core"
+  },
+  {
+    "slug": "buffer",
+    "nameEn": "Buffer",
+    "nameZh": "缓冲",
+    "powerType": "Buff",
+    "descriptionEn": "Prevent the next {Amount:plural:time|[blue]{}[/blue] times} you would lose HP.",
+    "descriptionZh": "阻止下[blue]{Amount}[/blue]次你受到的生命值损伤。",
+    "source": "core"
+  },
+  {
+    "slug": "dexterity",
+    "nameEn": "Dexterity",
+    "nameZh": "敏捷",
+    "powerType": "Buff",
+    "descriptionEn": "{Amount:cond:<0?Decreases|Increases} [gold]Block[/gold] gained from cards by [blue]{Amount:abs()}[/blue].",
+    "descriptionZh": "{Amount:cond:<0?减少|增加}从卡牌中获得的[gold]格挡[/gold]值[blue]{Amount:abs()}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "focus",
+    "nameEn": "Focus",
+    "nameZh": "集中",
+    "powerType": "Buff",
+    "descriptionEn": "{Amount:cond:<0?Decreases|Increases} the effectiveness of Orbs by [blue]{Amount:abs()}[/blue].",
+    "descriptionZh": "{Amount:cond:<0?降低|提升}充能球的效力[blue]{Amount:abs()}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "frail",
+    "nameEn": "Frail",
+    "nameZh": "脆弱",
+    "powerType": "Debuff",
+    "descriptionEn": "Gain [blue]25%[/blue] less [gold]Block[/gold] from cards for [blue]{Amount}[/blue] {Amount:plural:turn|turns}.",
+    "descriptionZh": "[blue]{Amount}[/blue]回合内，从卡牌中获得的[gold]格挡[/gold]值减少[blue]25%[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "intangible",
+    "nameEn": "Intangible",
+    "nameZh": "无实体",
+    "powerType": "Buff",
+    "descriptionEn": "Reduce all damage taken and HP loss to [blue]1[/blue]. Lasts for [blue]{Amount}[/blue] {Amount:plural:turn|turns}.",
+    "descriptionZh": "将受到的所有伤害和生命减少效果降低为[blue]1[/blue]。持续[blue]{Amount}[/blue]回合。",
+    "source": "core"
+  },
+  {
+    "slug": "no-draw",
+    "nameEn": "No Draw",
+    "nameZh": "不可抽牌",
+    "powerType": "Debuff",
+    "descriptionEn": "You may not draw any more cards this turn.",
+    "descriptionZh": "你在本回合无法再抽更多牌。",
+    "source": "core"
+  },
+  {
+    "slug": "plating",
+    "nameEn": "Plating",
+    "nameZh": "覆甲",
+    "powerType": "Buff",
+    "descriptionEn": "At the end of your turn, gain [blue]{Amount}[/blue] [gold]Block[/gold]. [gold]Plating[/gold] is reduced by [blue]{Decrement}[/blue] at the start of your turn.",
+    "descriptionZh": "在你的回合结束时获得[blue]{Amount}[/blue]点[gold]格挡[/gold]。[gold]覆甲[/gold]会在你的回合开始时减少[blue]{Decrement}[/blue]层。",
+    "source": "core"
+  },
+  {
+    "slug": "poison",
+    "nameEn": "Poison",
+    "nameZh": "中毒",
+    "powerType": "Debuff",
+    "descriptionEn": "At the start of {OnPlayer:your turn, lose|its turn, loses} [blue]{Amount}[/blue] HP, then reduce [gold]Poison[/gold] by [blue]1[/blue].",
+    "descriptionZh": "在{OnPlayer:你的回合|其回合}开始时失去[blue]{Amount}[/blue]点生命，然后将[gold]中毒[/gold]层数减少[blue]1[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "regen",
+    "nameEn": "Regen",
+    "nameZh": "再生",
+    "powerType": "Buff",
+    "descriptionEn": "At the end of your turn, heal [blue]{Amount}[/blue] HP, then reduce [gold]Regen[/gold] by [blue]1[/blue].",
+    "descriptionZh": "在你的回合结束时回复[blue]{Amount}[/blue]点生命，然后将[gold]再生[/gold]减少[blue]1[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "ritual",
+    "nameEn": "Ritual",
+    "nameZh": "仪式",
+    "powerType": "Buff",
+    "descriptionEn": "At the end of {OnPlayer:your|its} turn, {OnPlayer:gain|gains} [blue]{Amount}[/blue] [gold]Strength[/gold].",
+    "descriptionZh": "在{OnPlayer:你的|其}回合结束时，获得[blue]{Amount}[/blue]点[gold]力量[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "strength",
+    "nameEn": "Strength",
+    "nameZh": "力量",
+    "powerType": "Buff",
+    "descriptionEn": "{Amount:cond:<0?Decreases|Increases} attack damage by [blue]{Amount:abs()}[/blue].",
+    "descriptionZh": "{Amount:cond:<0?减少|增加}攻击牌造成的伤害值[blue]{Amount:abs()}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "thorns",
+    "nameEn": "Thorns",
+    "nameZh": "荆棘",
+    "powerType": "Buff",
+    "descriptionEn": "When hit by an attack, deal [blue]{Amount}[/blue] damage back.",
+    "descriptionZh": "当被攻击命中时，反击造成[blue]{Amount}[/blue]点伤害。",
+    "source": "core"
+  },
+  {
+    "slug": "vulnerable",
+    "nameEn": "Vulnerable",
+    "nameZh": "易伤",
+    "powerType": "Debuff",
+    "descriptionEn": "Receive [blue]{DamageIncrease:percentMore()}%[/blue] more damage from Attacks for [blue]{Amount}[/blue] {Amount:plural:turn|turns}.",
+    "descriptionZh": "[blue]{Amount}[/blue]回合内，受到的攻击伤害增加[blue]{DamageIncrease:percentMore()}%[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "weak",
+    "nameEn": "Weak",
+    "nameZh": "虚弱",
+    "powerType": "Debuff",
+    "descriptionEn": "Attacks deal [blue]25%[/blue] less damage for [blue]{Amount}[/blue] {Amount:plural:turn|turns}.",
+    "descriptionZh": "[blue]{Amount}[/blue]回合内，造成的攻击伤害减少[blue]25%[/blue]。",
+    "source": "core"
+  }
 ]

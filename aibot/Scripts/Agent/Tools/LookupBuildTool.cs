@@ -22,14 +22,7 @@ public sealed class LookupBuildTool : RuntimeBackedToolBase
 
         var analysis = Runtime.GetCurrentAnalysis();
         var query = parameters?.Trim();
-        var builds = Runtime.KnowledgeBase.Builds
-            .Where(build => build.CharacterId == analysis.CharacterId)
-            .Where(build => string.IsNullOrWhiteSpace(query)
-                || build.NameEn.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || build.NameZh.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || build.Slug.Contains(query, StringComparison.OrdinalIgnoreCase))
-            .Take(5)
-            .ToList();
+        var builds = Runtime.KnowledgeBase.FindBuilds(query, analysis.CharacterId, 5);
 
         if (builds.Count == 0)
         {
@@ -42,13 +35,21 @@ public sealed class LookupBuildTool : RuntimeBackedToolBase
         foreach (var build in builds)
         {
             builder.AppendLine($"构筑：{build.NameEn} / {build.NameZh}");
+            if (!string.IsNullOrWhiteSpace(build.SummaryZh))
+            {
+                builder.AppendLine($"摘要(ZH)：{build.SummaryZh}");
+            }
             if (!string.IsNullOrWhiteSpace(build.SummaryEn))
             {
-                builder.AppendLine($"摘要：{build.SummaryEn}");
+                builder.AppendLine($"摘要(EN)：{build.SummaryEn}");
+            }
+            if (!string.IsNullOrWhiteSpace(build.TipsZh))
+            {
+                builder.AppendLine($"要点(ZH)：{build.TipsZh}");
             }
             if (!string.IsNullOrWhiteSpace(build.TipsEn))
             {
-                builder.AppendLine($"要点：{build.TipsEn}");
+                builder.AppendLine($"要点(EN)：{build.TipsEn}");
             }
             builder.AppendLine();
         }

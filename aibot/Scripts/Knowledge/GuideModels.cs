@@ -88,6 +88,9 @@ public sealed class CardGuideEntry
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
 
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
+
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
 }
@@ -108,6 +111,9 @@ public sealed class RelicGuideEntry
 
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
 
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
@@ -133,6 +139,9 @@ public sealed class PotionEntry
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
 
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
+
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
 }
@@ -154,8 +163,29 @@ public sealed class PowerEntry
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
 
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
+
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
+}
+
+public sealed class EnemyMoveEntry
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("titleEn")]
+    public string? TitleEn { get; set; }
+
+    [JsonPropertyName("titleZh")]
+    public string? TitleZh { get; set; }
+
+    [JsonPropertyName("banterEn")]
+    public string? BanterEn { get; set; }
+
+    [JsonPropertyName("banterZh")]
+    public string? BanterZh { get; set; }
 }
 
 public sealed class EnemyEntry
@@ -171,6 +201,12 @@ public sealed class EnemyEntry
 
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
+
+    [JsonPropertyName("moves")]
+    public List<EnemyMoveEntry> Moves { get; set; } = new();
 
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
@@ -190,6 +226,9 @@ public sealed class EventEntry
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
 
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
+
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";
 }
@@ -207,6 +246,9 @@ public sealed class EnchantmentEntry
 
     [JsonPropertyName("descriptionEn")]
     public string? DescriptionEn { get; set; }
+
+    [JsonPropertyName("descriptionZh")]
+    public string? DescriptionZh { get; set; }
 
     [JsonPropertyName("source")]
     public string Source { get; set; } = "core";

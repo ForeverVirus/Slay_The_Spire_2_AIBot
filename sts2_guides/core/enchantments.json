@@ -1,1 +1,186 @@
-[]
+[
+  {
+    "slug": "adroit",
+    "nameEn": "Adroit",
+    "nameZh": "伶俐",
+    "descriptionEn": "Gain [blue]{Block:diff()}[/blue] [gold]Block[/gold].",
+    "descriptionZh": "获得[blue]{Block:diff()}[/blue]点[gold]格挡[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "clone",
+    "nameEn": "Clone",
+    "nameZh": "克隆",
+    "descriptionEn": "This card can be duplicated at [gold]Rest Sites[/gold].",
+    "descriptionZh": "这张牌能在[gold]休息处[/gold]被复制。",
+    "source": "core"
+  },
+  {
+    "slug": "corrupted",
+    "nameEn": "Corrupted",
+    "nameZh": "腐化",
+    "descriptionEn": "Deal [blue]50%[/blue] more damage, but lose [blue]2[/blue] HP.",
+    "descriptionZh": "造成的伤害增加[blue]50%[/blue]，但会失去[blue]2[/blue]生命。",
+    "source": "core"
+  },
+  {
+    "slug": "deprecated-enchantment",
+    "nameEn": "Deprecated",
+    "nameZh": "弃用",
+    "descriptionEn": "This enchantment has been removed from the game.",
+    "descriptionZh": "这个附魔已经从游戏中被移除。",
+    "source": "core"
+  },
+  {
+    "slug": "favored",
+    "nameEn": "Favored",
+    "nameZh": "钟爱",
+    "descriptionEn": "This card's attack damage is doubled.",
+    "descriptionZh": "这张牌的攻击伤害翻倍。",
+    "source": "core"
+  },
+  {
+    "slug": "glam",
+    "nameEn": "Glam",
+    "nameZh": "华彩",
+    "descriptionEn": "This card has [gold]Replay[/gold] once per combat.",
+    "descriptionZh": "这张牌每场战斗能够[gold]重放[/gold]一次。",
+    "source": "core"
+  },
+  {
+    "slug": "goopy",
+    "nameEn": "Goopy",
+    "nameZh": "黏糊",
+    "descriptionEn": "This card gains [gold]Exhaust[/gold]. When played, permanently increase this card's [gold]Block[/gold] by [blue]1[/blue].",
+    "descriptionZh": "这张牌获得[gold]消耗[/gold]。当被打出时，这张牌的[gold]格挡[/gold]值永久增加[blue]1[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "imbued",
+    "nameEn": "Imbued",
+    "nameZh": "注能",
+    "descriptionEn": "This card is played automatically at the start of each combat.",
+    "descriptionZh": "这张牌在每场战斗开始时自动打出。",
+    "source": "core"
+  },
+  {
+    "slug": "instinct",
+    "nameEn": "Instinct",
+    "nameZh": "本能",
+    "descriptionEn": "Decrease the cost of this card by [blue]1[/blue].",
+    "descriptionZh": "这张牌的费用减少[blue]1[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "momentum",
+    "nameEn": "Momentum",
+    "nameZh": "动量",
+    "descriptionEn": "Increase this card's attack damage by [blue]{Amount}[/blue] this combat when played.",
+    "descriptionZh": "在本场战斗中，每次打出就增加这张牌的攻击伤害[blue]{Amount}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "nimble",
+    "nameEn": "Nimble",
+    "nameZh": "灵巧",
+    "descriptionEn": "Increases [gold]Block[/gold] gained from this card by [blue]{Amount}[/blue].",
+    "descriptionZh": "这张牌获得的[gold]格挡[/gold]值增加[blue]{Amount}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "perfect-fit",
+    "nameEn": "Perfect Fit",
+    "nameZh": "完美契合",
+    "descriptionEn": "Whenever this would be shuffled into your [gold]Draw Pile[/gold], place it on the top instead.",
+    "descriptionZh": "每当这张牌要被洗入[gold]抽牌堆[/gold]时，将其放在抽牌堆顶。",
+    "source": "core"
+  },
+  {
+    "slug": "royally-approved",
+    "nameEn": "Royally Approved",
+    "nameZh": "王室认证",
+    "descriptionEn": "This card has [gold]Innate[/gold] and [gold]Retain[/gold].",
+    "descriptionZh": "这张牌拥有[gold]固有[/gold]和[gold]保留[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "sharp",
+    "nameEn": "Sharp",
+    "nameZh": "锋利",
+    "descriptionEn": "Increases damage on this card by [blue]{Amount}[/blue].",
+    "descriptionZh": "这张牌上的伤害值增加[blue]{Amount}[/blue]点。",
+    "source": "core"
+  },
+  {
+    "slug": "slither",
+    "nameEn": "Slither",
+    "nameZh": "蛇行",
+    "descriptionEn": "When you draw this card, randomize its cost from [blue]0[/blue] to [blue]3[/blue].",
+    "descriptionZh": "当你抽到这张牌时，使其费用在[blue]0[/blue]到[blue]3[/blue]之间随机变化。",
+    "source": "core"
+  },
+  {
+    "slug": "slumbering-essence",
+    "nameEn": "Slumbering Essence",
+    "nameZh": "沉眠精华",
+    "descriptionEn": "If this card is in your hand at the end of turn, reduce its cost by [blue]1[/blue] until it is played.",
+    "descriptionZh": "回合结束时，如果这张牌在你的手牌中，则将其费用降低[blue]1[/blue]点，直到其被打出。",
+    "source": "core"
+  },
+  {
+    "slug": "souls-power",
+    "nameEn": "Soul's Power",
+    "nameZh": "灵魂之力",
+    "descriptionEn": "This card loses [gold]Exhaust[/gold].",
+    "descriptionZh": "这张牌失去[gold]消耗[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "sown",
+    "nameEn": "Sown",
+    "nameZh": "播种",
+    "descriptionEn": "The first time you play this card each combat, gain {Amount:energyIcons()}.",
+    "descriptionZh": "你在每场战斗中第一次打出这张牌时，获得{Amount:energyIcons()}。",
+    "source": "core"
+  },
+  {
+    "slug": "spiral",
+    "nameEn": "Spiral",
+    "nameZh": "涡旋",
+    "descriptionEn": "This card gains [gold]Replay[/gold] [blue]1[/blue].",
+    "descriptionZh": "这张牌获得[gold]重放[/gold][blue]1[/blue]。",
+    "source": "core"
+  },
+  {
+    "slug": "steady",
+    "nameEn": "Steady",
+    "nameZh": "稳定",
+    "descriptionEn": "This card gains [gold]Retain[/gold].",
+    "descriptionZh": "这张牌获得[gold]保留[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "swift",
+    "nameEn": "Swift",
+    "nameZh": "迅速",
+    "descriptionEn": "The first time you play this card, draw [blue]{Amount}[/blue] {Amount:plural:card|cards}.",
+    "descriptionZh": "你第一次打出这张牌时，抽[blue]{Amount}[/blue]张牌。",
+    "source": "core"
+  },
+  {
+    "slug": "tezcataras-ember",
+    "nameEn": "Tezcatara's Ember",
+    "nameZh": "特兹卡塔拉的余烬",
+    "descriptionEn": "Costs [blue]0[/blue] and gains [gold]Eternal[/gold].",
+    "descriptionZh": "费用为[blue]0[/blue]且获得[gold]永恒[/gold]。",
+    "source": "core"
+  },
+  {
+    "slug": "vigorous",
+    "nameEn": "Vigorous",
+    "nameZh": "活力",
+    "descriptionEn": "The first time this card is played, it deals [blue]{Amount}[/blue] additional damage.",
+    "descriptionZh": "第一次打出这张牌时，造成[blue]{Amount}[/blue]点额外伤害。",
+    "source": "core"
+  }
+]

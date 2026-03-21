@@ -1,1 +1,2483 @@
-[]
+[
+	{
+		"slug": "architect",
+		"nameEn": "The Architect",
+		"nameZh": "建筑师",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "assassin-ruby-raider",
+		"nameEn": "Assassin Raider",
+		"nameZh": "劫掠者刺客",
+		"moves": [
+			{
+				"id": "KILLSHOT",
+				"titleEn": "Killshot",
+				"titleZh": "致命射击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "axebot",
+		"nameEn": "Axebot",
+		"nameZh": "巨斧机器人",
+		"moves": [
+			{
+				"id": "BOOT_UP",
+				"titleEn": "Boot Up",
+				"titleZh": "启动"
+			},
+			{
+				"id": "HAMMER_UPPERCUT",
+				"titleEn": "Hammer Uppercut",
+				"titleZh": "上勾锤击"
+			},
+			{
+				"id": "ONE_TWO",
+				"titleEn": "The One-Two",
+				"titleZh": "两连击"
+			},
+			{
+				"id": "SHARPEN",
+				"titleEn": "Sharpen",
+				"titleZh": "打磨"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "axe-ruby-raider",
+		"nameEn": "Axe Raider",
+		"nameZh": "劫掠者斧手",
+		"moves": [
+			{
+				"id": "BIG_SWING",
+				"titleEn": "Big Swing",
+				"titleZh": "大力挥舞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "battle-friend-v1",
+		"nameEn": "Battle Friend V1.0",
+		"nameZh": "战斗好伙伴V1.0",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "battle-friend-v2",
+		"nameEn": "Battle Friend V2.0",
+		"nameZh": "战斗好伙伴V2.0",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "battle-friend-v3",
+		"nameEn": "Battle Friend V3.0",
+		"nameZh": "战斗好伙伴V3.0",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "big-dummy",
+		"nameEn": "Big Dummy",
+		"nameZh": "大型假人",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "bowlbug-egg",
+		"nameEn": "Bowlbug (Egg)",
+		"nameZh": "盛碗虫（卵）",
+		"moves": [
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "PROTECT",
+				"titleEn": "Protect",
+				"titleZh": "保护"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "bowlbug-nectar",
+		"nameEn": "Bowlbug (Nectar)",
+		"nameZh": "盛碗虫（蜜）",
+		"moves": [
+			{
+				"id": "BUFF",
+				"titleEn": "Buff",
+				"titleZh": "强化"
+			},
+			{
+				"id": "THRASH",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			},
+			{
+				"id": "THRASH2",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "bowlbug-rock",
+		"nameEn": "Bowlbug (Rock)",
+		"nameZh": "盛碗虫（石）",
+		"moves": [
+			{
+				"id": "HEADBUTT",
+				"titleEn": "Headbutt",
+				"titleZh": "头槌"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "bowlbug-silk",
+		"nameEn": "Bowlbug (Silk)",
+		"nameZh": "盛碗虫（丝）",
+		"moves": [
+			{
+				"id": "SPIN_WEB",
+				"titleEn": "Spin Web",
+				"titleZh": "吐网"
+			},
+			{
+				"id": "THRASH",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "brute-ruby-raider",
+		"nameEn": "Brute Raider",
+		"nameZh": "劫掠者暴徒",
+		"moves": [
+			{
+				"id": "BEAT",
+				"titleEn": "Beat",
+				"titleZh": "殴打"
+			},
+			{
+				"id": "CLAP",
+				"titleEn": "Clap",
+				"titleZh": "拍击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "bygone-effigy",
+		"nameEn": "Bygone Effigy",
+		"nameZh": "旧日雕像",
+		"moves": [
+			{
+				"id": "SLASHES",
+				"titleEn": "Slashes",
+				"titleZh": "斩击"
+			},
+			{
+				"id": "SLEEP",
+				"titleEn": "Sleep",
+				"titleZh": "沉睡"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "byrdonis",
+		"nameEn": "Byrdonis",
+		"nameZh": "多尼斯异鸟",
+		"moves": [
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "PECK",
+				"titleEn": "Peck",
+				"titleZh": "啄击"
+			},
+			{
+				"id": "PROTECT",
+				"titleEn": "Protect",
+				"titleZh": "保护"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "byrdpip",
+		"nameEn": "Byrdpip",
+		"nameZh": "异鸟宝宝",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "calcified-cultist",
+		"nameEn": "Calcified Cultist",
+		"nameZh": "钙化邪教徒",
+		"moves": [
+			{
+				"id": "DARK_STRIKE",
+				"titleEn": "Dark Strike",
+				"titleZh": "黑暗打击"
+			},
+			{
+				"id": "INCANTATION",
+				"banterEn": "[jitter]OUR POWER IS UNMATCHED![/jitter]",
+				"titleEn": "Incantation",
+				"banterZh": "[jitter]我们的力量无人能及！[/jitter]",
+				"titleZh": "念咒"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "ceremonial-beast",
+		"nameEn": "Ceremonial Beast",
+		"nameZh": "仪式兽",
+		"moves": [
+			{
+				"id": "BEAST_CRY",
+				"titleEn": "Beast Cry",
+				"titleZh": "野兽咆哮"
+			},
+			{
+				"id": "CRUSH",
+				"titleEn": "Crush",
+				"titleZh": "碾碎"
+			},
+			{
+				"id": "PLOW",
+				"titleEn": "Plow",
+				"titleZh": "横冲直撞"
+			},
+			{
+				"id": "STAMP",
+				"titleEn": "Stamp",
+				"titleZh": "跺地"
+			},
+			{
+				"id": "STOMP",
+				"titleEn": "Stomp",
+				"titleZh": "踩踏"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "chomper",
+		"nameEn": "Chomper",
+		"nameZh": "啃咬机",
+		"moves": [
+			{
+				"id": "CLAMP",
+				"titleEn": "Clamp",
+				"titleZh": "猛夹"
+			},
+			{
+				"id": "SCREECH",
+				"titleEn": "Screech",
+				"titleZh": "尖锐鸣叫"
+			},
+			{
+				"id": "THRASH",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "corpse-slug",
+		"nameEn": "Corpse Slug",
+		"nameZh": "噬尸蛞蝓",
+		"moves": [
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			},
+			{
+				"id": "WHIP_SLAP",
+				"titleEn": "Whip Slap",
+				"titleZh": "鞭打"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "crossbow-ruby-raider",
+		"nameEn": "Crossbow Raider",
+		"nameZh": "劫掠者弩手",
+		"moves": [
+			{
+				"id": "FIRE",
+				"titleEn": "Fire!",
+				"titleZh": "射击！"
+			},
+			{
+				"id": "RELOAD",
+				"titleEn": "Reload",
+				"titleZh": "装填"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "crusher",
+		"nameEn": "Crusher",
+		"nameZh": "碾碎爪",
+		"moves": [
+			{
+				"id": "ADAPT",
+				"titleEn": "Adapt",
+				"titleZh": "适应"
+			},
+			{
+				"id": "BUG_STING",
+				"titleEn": "Bug Sting",
+				"titleZh": "虫蛰"
+			},
+			{
+				"id": "ENLARGING_STRIKE",
+				"titleEn": "Enlarging Strike",
+				"titleZh": "巨化打击"
+			},
+			{
+				"id": "GUARDED_STRIKE",
+				"titleEn": "Guarded Strike",
+				"titleZh": "戒备打击"
+			},
+			{
+				"id": "THRASH",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "cubex-construct",
+		"nameEn": "Cubex Construct",
+		"nameZh": "立柱构造体",
+		"moves": [
+			{
+				"id": "CHARGE_UP",
+				"titleEn": "Charge Up",
+				"titleZh": "蓄能"
+			},
+			{
+				"id": "REPEATER_BLAST",
+				"titleEn": "Repeater Blast",
+				"titleZh": "重复轰击"
+			},
+			{
+				"id": "SUBMERGE",
+				"titleEn": "Submerge",
+				"titleZh": "下潜"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "damp-cultist",
+		"nameEn": "Damp Cultist",
+		"nameZh": "潮湿邪教徒",
+		"moves": [
+			{
+				"id": "DARK_STRIKE",
+				"titleEn": "Dark Strike",
+				"titleZh": "黑暗打击"
+			},
+			{
+				"id": "INCANTATION",
+				"banterEn": "[jitter]CAW!\nCAAAW[/jitter]",
+				"titleEn": "Incantation",
+				"banterZh": "[jitter]咔！\n咔——[/jitter]",
+				"titleZh": "念咒"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "decimillipede-segment",
+		"nameEn": "Decimillipede",
+		"nameZh": "残杀千足虫",
+		"moves": [
+			{
+				"id": "BULK",
+				"titleEn": "Bulk",
+				"titleZh": "胀大"
+			},
+			{
+				"id": "DEAD",
+				"titleEn": "Dead",
+				"titleZh": "死亡"
+			},
+			{
+				"id": "OUTGAS",
+				"titleEn": "Outgas",
+				"titleZh": "释放气体"
+			},
+			{
+				"id": "REATTACH",
+				"titleEn": "Reattach",
+				"titleZh": "接续"
+			},
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			},
+			{
+				"id": "WRITHE",
+				"titleEn": "Writhe",
+				"titleZh": "扭动"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "devoted-sculptor",
+		"nameEn": "Devoted Sculptor",
+		"nameZh": "虔诚雕刻师",
+		"moves": [
+			{
+				"id": "FORBIDDEN_INCANTATION",
+				"titleEn": "Forbidden Incantation",
+				"banterEn": "[jitter]CAAAAW!![/jitter]",
+				"titleZh": "禁忌咒文",
+				"banterZh": "[jitter]咔咔——！！[/jitter]"
+			},
+			{
+				"id": "SAVAGE",
+				"titleEn": "Savage",
+				"titleZh": "狂击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "door",
+		"nameEn": "Door",
+		"nameZh": "门扉",
+		"moves": [
+			{
+				"id": "DOOR_SLAM",
+				"titleEn": "Door Slam",
+				"titleZh": "摔门"
+			},
+			{
+				"id": "DRAMATIC_OPEN",
+				"titleEn": "Dramatic Open",
+				"titleZh": "戏剧性打开"
+			},
+			{
+				"id": "ENFORCE",
+				"titleEn": "Enforce",
+				"titleZh": "强制执行"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "doormaker",
+		"nameEn": "Doormaker",
+		"nameZh": "门扉缔造者",
+		"moves": [
+			{
+				"id": "GET_BACK_IN",
+				"titleEn": "Get Back In",
+				"titleZh": "回去"
+			},
+			{
+				"id": "WHAT_IS_IT",
+				"titleEn": "What is it",
+				"titleZh": "什么事"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "entomancer",
+		"nameEn": "Entomancer",
+		"nameZh": "蜂群术士",
+		"moves": [
+			{
+				"id": "AGITATE_SWARM",
+				"titleEn": "Agitate Swarm",
+				"titleZh": "煽动蜂群"
+			},
+			{
+				"id": "BEES",
+				"titleEn": "Beeeees!",
+				"titleZh": "蜜——蜂——！"
+			},
+			{
+				"id": "PHEROMONE_SPIT",
+				"titleEn": "Pheromone Spit",
+				"titleZh": "喷射信息素"
+			},
+			{
+				"id": "SPEAR",
+				"titleEn": "Spear!",
+				"titleZh": "矛击！"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "exoskeleton",
+		"nameEn": "Exoskeleton",
+		"nameZh": "外骨骼虫",
+		"moves": [
+			{
+				"id": "ENRAGE",
+				"titleEn": "Enrage",
+				"titleZh": "激怒"
+			},
+			{
+				"id": "MANDIBLES",
+				"titleEn": "Mandibles",
+				"titleZh": "啃食"
+			},
+			{
+				"id": "SKITTER",
+				"titleEn": "Skitter",
+				"titleZh": "忙乱"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "eye-with-teeth",
+		"nameEn": "Eye With Teeth",
+		"nameZh": "利齿之眼",
+		"moves": [
+			{
+				"id": "DISTRACT",
+				"titleEn": "Distract",
+				"titleZh": "牵制"
+			},
+			{
+				"id": "STARTLE",
+				"titleEn": "Startle",
+				"titleZh": "惊觉"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fabricator",
+		"nameEn": "Fabricator",
+		"nameZh": "组装师",
+		"moves": [
+			{
+				"id": "DISINTEGRATE",
+				"titleEn": "Disintegrate",
+				"titleZh": "瓦解"
+			},
+			{
+				"id": "FABRICATE",
+				"titleEn": "Fabricate",
+				"titleZh": "组装"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fake-merchant-monster",
+		"nameEn": "The Merchant???",
+		"nameZh": "商人？？？",
+		"moves": [
+			{
+				"id": "ENRAGE",
+				"titleEn": "Enrage",
+				"titleZh": "激怒"
+			},
+			{
+				"id": "SPEW_COINS",
+				"titleEn": "Spew Coins",
+				"titleZh": "喷吐硬币"
+			},
+			{
+				"id": "SWIPE",
+				"titleEn": "Swipe",
+				"titleZh": "顺走"
+			},
+			{
+				"id": "THROW_RELIC",
+				"titleEn": "Throw Relic",
+				"titleZh": "投掷遗物"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fat-gremlin",
+		"nameEn": "Fat Gremlin",
+		"nameZh": "胖地精",
+		"moves": [
+			{
+				"id": "FLEE",
+				"banterEn": "[jitter][orange]I'm outta here![/orange][/jitter]",
+				"titleEn": "Flee",
+				"banterZh": "[jitter][orange]我溜啦！[/orange][/jitter]",
+				"titleZh": "逃跑"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "flail-knight",
+		"nameEn": "Flail Knight",
+		"nameZh": "连枷骑士",
+		"moves": [
+			{
+				"id": "BREAKER",
+				"titleEn": "Breaker",
+				"titleZh": "砸碎"
+			},
+			{
+				"id": "FLAIL",
+				"titleEn": "Flail",
+				"titleZh": "连枷"
+			},
+			{
+				"id": "RAM",
+				"titleEn": "Ram",
+				"titleZh": "撞击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "flyconid",
+		"nameEn": "Flyconid",
+		"nameZh": "飞蝇菌子",
+		"moves": [
+			{
+				"id": "FRAIL_SPORES",
+				"titleEn": "Frail Spores",
+				"titleZh": "脆弱孢子"
+			},
+			{
+				"id": "SMASH",
+				"titleEn": "Smash",
+				"titleZh": "猛砸"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fogmog",
+		"nameEn": "Fogmog",
+		"nameZh": "雾菇",
+		"moves": [
+			{
+				"id": "ILLUSORY_SPORES",
+				"titleEn": "Illusory Spores",
+				"titleZh": "幻象孢子"
+			},
+			{
+				"id": "THWACK",
+				"titleEn": "Thwack",
+				"titleZh": "重击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fossil-stalker",
+		"nameEn": "Fossil Stalker",
+		"nameZh": "化石追踪者",
+		"moves": [
+			{
+				"id": "LASH",
+				"titleEn": "Lash",
+				"titleZh": "甩动"
+			},
+			{
+				"id": "LATCH",
+				"titleEn": "Latch",
+				"titleZh": "缠上"
+			},
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "frog-knight",
+		"nameEn": "Frog Knight",
+		"nameZh": "青蛙骑士",
+		"moves": [
+			{
+				"id": "BEETLE_CHARGE",
+				"titleEn": "Beetle Charge",
+				"titleZh": "甲虫冲锋"
+			},
+			{
+				"id": "FOR_THE_QUEEN",
+				"titleEn": "For the Queen",
+				"titleZh": "为了女王"
+			},
+			{
+				"id": "STRIKE_DOWN_EVIL",
+				"titleEn": "Strike Down Evil",
+				"titleZh": "惩恶一击"
+			},
+			{
+				"id": "TONGUE_LASH",
+				"titleEn": "Tongue Lash",
+				"titleZh": "吐舌"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "fuzzy-wurm-crawler",
+		"nameEn": "Fuzzy Wurm Crawler",
+		"nameZh": "毛绒伏地虫",
+		"moves": [
+			{
+				"id": "ACID_GOOP",
+				"titleEn": "Acid Goop",
+				"titleZh": "酸液黏球"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "gas-bomb",
+		"nameEn": "Gas Bomb",
+		"nameZh": "气态炸弹",
+		"moves": [
+			{
+				"id": "EXPLODE",
+				"titleEn": "Explode",
+				"titleZh": "爆炸"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "globe-head",
+		"nameEn": "Globe Head",
+		"nameZh": "电球头",
+		"moves": [
+			{
+				"id": "CHANNEL_LIGHTNING",
+				"titleEn": "Channel Lightning",
+				"titleZh": "生成闪电"
+			},
+			{
+				"id": "DUAL_CAST",
+				"titleEn": "Dual Cast",
+				"titleZh": "双重释放"
+			},
+			{
+				"id": "SHOCKING_SLAP",
+				"titleEn": "Shocking Slap",
+				"titleZh": "电击掌"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "gremlin-merc",
+		"nameEn": "Gremlin Merc",
+		"nameZh": "地精佣兵",
+		"moves": [
+			{
+				"id": "DOUBLE_SMASH",
+				"titleEn": "Double Smash",
+				"titleZh": "双重猛击"
+			},
+			{
+				"id": "GIMME",
+				"banterEn": "[jitter][gold]Money![/gold][/jitter]\n[sine][orange]Money![/orange][/sine]",
+				"titleEn": "Gimme",
+				"banterZh": "[jitter][gold]钱钱！[/gold][/jitter]\n[sine][orange]钱钱！[/orange][/sine]",
+				"titleZh": "拿来"
+			},
+			{
+				"id": "HEHE",
+				"titleEn": "Hehe",
+				"titleZh": "嘿嘿"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "guardbot",
+		"nameEn": "Guardbot",
+		"nameZh": "守护机器人",
+		"moves": [
+			{
+				"id": "GUARD",
+				"titleEn": "Guard",
+				"titleZh": "守护"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "haunted-ship",
+		"nameEn": "Haunted Ship",
+		"nameZh": "幽灵船",
+		"moves": [
+			{
+				"id": "HAUNT",
+				"titleEn": "Haunt",
+				"titleZh": "纠缠"
+			},
+			{
+				"id": "RAMMING_SPEED",
+				"titleEn": "Ramming Speed",
+				"titleZh": "撞击速度"
+			},
+			{
+				"id": "STOMP",
+				"titleEn": "Stomp",
+				"titleZh": "践踏"
+			},
+			{
+				"id": "SWIPE",
+				"titleEn": "Swipe",
+				"titleZh": "扫击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "hunter-killer",
+		"nameEn": "Hunter Killer",
+		"nameZh": "猎人杀手",
+		"moves": [
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "PUNCTURE",
+				"titleEn": "Puncture",
+				"titleZh": "刺穿"
+			},
+			{
+				"id": "TENDERIZING_GOOP",
+				"titleEn": "Tenderizing Goop",
+				"titleZh": "嫩化黏液"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "infested-prism",
+		"nameEn": "Infested Prism",
+		"nameZh": "感染棱柱",
+		"moves": [
+			{
+				"id": "JAB",
+				"titleEn": "Jab",
+				"titleZh": "刺击"
+			},
+			{
+				"id": "PULSATE",
+				"titleEn": "Pulsate",
+				"titleZh": "脉动"
+			},
+			{
+				"id": "RADIATE",
+				"titleEn": "Radiate",
+				"titleZh": "辐射"
+			},
+			{
+				"id": "WHIRLWIND",
+				"titleEn": "Whirlwind",
+				"titleZh": "旋风"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "inklet",
+		"nameEn": "Inklet",
+		"nameZh": "墨宝",
+		"moves": [
+			{
+				"id": "JAB",
+				"titleEn": "Jab",
+				"titleZh": "刺击"
+			},
+			{
+				"id": "PIERCING_GAZE",
+				"titleEn": "Piercing Gaze",
+				"titleZh": "锐利凝视"
+			},
+			{
+				"id": "WINDUP_PUNCH",
+				"titleEn": "Windup Punch",
+				"titleZh": "蓄力拳"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "kin-follower",
+		"nameEn": "Kin Follower",
+		"nameZh": "同族信徒",
+		"moves": [
+			{
+				"id": "BOOMERANG_MOVE",
+				"titleEn": "Boomerang",
+				"titleZh": "回旋镖"
+			},
+			{
+				"id": "POWER_DANCE_MOVE",
+				"titleEn": "Power Dance",
+				"titleZh": "力量之舞"
+			},
+			{
+				"id": "QUICK_SLASH_MOVE",
+				"titleEn": "Quick Slash",
+				"titleZh": "快速斩击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "kin-priest",
+		"nameEn": "Kin Priest",
+		"nameZh": "同族神官",
+		"moves": [
+			{
+				"id": "BEAM_MOVE",
+				"titleEn": "Soul Beam",
+				"titleZh": "灵魂光束"
+			},
+			{
+				"id": "OR_OF_FRAILTY_MOVE",
+				"titleEn": "Orb of Frailty",
+				"titleZh": "脆弱球"
+			},
+			{
+				"id": "OR_OF_WEAKNESS_MOVE",
+				"titleEn": "Orb of Weakness",
+				"titleZh": "虚弱球"
+			},
+			{
+				"id": "RITUAL_MOVE",
+				"titleEn": "Dark Ritual",
+				"titleZh": "黑暗仪式"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "knowledge-demon",
+		"nameEn": "Knowledge Demon",
+		"nameZh": "知识恶魔",
+		"moves": [
+			{
+				"id": "BLUE_FLAME",
+				"titleEn": "Blue Flame",
+				"titleZh": "蓝色火焰"
+			},
+			{
+				"id": "CURSE_OF_KNOWLEDGE",
+				"titleEn": "Curse of Knowledge",
+				"titleZh": "知识的诅咒"
+			},
+			{
+				"id": "HAVE_A_TASTE",
+				"titleEn": "Have a Taste",
+				"titleZh": "不妨一品"
+			},
+			{
+				"id": "KNOWLEDGE_OVERWHELMING",
+				"titleEn": "Knowledge Overwhelming",
+				"titleZh": "知识过载"
+			},
+			{
+				"id": "PONDER",
+				"titleEn": "Ponder",
+				"titleZh": "思考"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "lagavulin-matriarch",
+		"nameEn": "Lagavulin Matriarch",
+		"nameZh": "乐加维林族母",
+		"moves": [
+			{
+				"id": "DISEMBOWEL",
+				"titleEn": "Disembowel",
+				"titleZh": "开膛破肚"
+			},
+			{
+				"id": "SLASH",
+				"titleEn": "Slash",
+				"titleZh": "斩击"
+			},
+			{
+				"id": "SLEEP",
+				"titleEn": "Sleep",
+				"titleZh": "沉睡"
+			},
+			{
+				"id": "SOUL_SIPHON",
+				"titleEn": "Soul Siphon",
+				"titleZh": "灵魂汲取"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "leaf-slime-m",
+		"nameEn": "Leaf Slime (M)",
+		"nameZh": "树叶史莱姆（中）",
+		"moves": [
+			{
+				"id": "CLUMP_SHOT",
+				"titleEn": "Clump Shot",
+				"titleZh": "团块射击"
+			},
+			{
+				"id": "STICKY_SHOT",
+				"titleEn": "Sticky Shot",
+				"titleZh": "黏糊射击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "leaf-slime-s",
+		"nameEn": "Leaf Slime (S)",
+		"nameZh": "树叶史莱姆（小）",
+		"moves": [
+			{
+				"id": "GOOP",
+				"titleEn": "Goop",
+				"titleZh": "黏液"
+			},
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "living-fog",
+		"nameEn": "Living Fog",
+		"nameZh": "活雾",
+		"moves": [
+			{
+				"id": "BLOAT",
+				"titleEn": "Bloat",
+				"titleZh": "膨胀"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "living-shield",
+		"nameEn": "Living Shield",
+		"nameZh": "活体盾",
+		"moves": [
+			{
+				"id": "SHIELD_SLAM",
+				"titleEn": "Shield Slam",
+				"titleZh": "盾击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "louse-progenitor",
+		"nameEn": "Louse Progenitor",
+		"nameZh": "虱虫之祖",
+		"moves": [
+			{
+				"id": "ACID_DUST",
+				"titleEn": "Acid Dust",
+				"titleZh": "酸性尘"
+			},
+			{
+				"id": "CURL_AND_GROW",
+				"titleEn": "Curl and Grow",
+				"titleZh": "蜷身成长"
+			},
+			{
+				"id": "WEB_CANNON",
+				"titleEn": "Web Cannon",
+				"titleZh": "吐网炮"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "magi-knight",
+		"nameEn": "Magi Knight",
+		"nameZh": "魔法骑士",
+		"moves": [
+			{
+				"id": "MAGIC_BOMB",
+				"titleEn": "Magic Bomb",
+				"titleZh": "魔法炸弹"
+			},
+			{
+				"id": "POWER_SHIELD",
+				"titleEn": "Power Shield",
+				"titleZh": "强力护盾"
+			},
+			{
+				"id": "RAM",
+				"titleEn": "Ram",
+				"titleZh": "撞击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "mawler",
+		"nameEn": "Mawler",
+		"nameZh": "蛮兽",
+		"moves": [
+			{
+				"id": "CLAW",
+				"titleEn": "Claw",
+				"titleZh": "爪击"
+			},
+			{
+				"id": "RIP_AND_TEAR",
+				"titleEn": "Rip and Tear",
+				"titleZh": "狂乱撕扯"
+			},
+			{
+				"id": "ROAR",
+				"titleEn": "Roar",
+				"titleZh": "怒吼"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "mecha-knight",
+		"nameEn": "Mecha Knight",
+		"nameZh": "机甲骑士",
+		"moves": [
+			{
+				"id": "CHARGE",
+				"titleEn": "Charge",
+				"titleZh": "冲锋"
+			},
+			{
+				"id": "FLAMETHROWER",
+				"titleEn": "Flamethrower",
+				"titleZh": "喷火器"
+			},
+			{
+				"id": "HEAVY_CLEAVE",
+				"titleEn": "Heavy Cleave",
+				"titleZh": "重斩"
+			},
+			{
+				"id": "WINDUP",
+				"titleEn": "Windup",
+				"titleZh": "举起蓄力"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "mysterious-knight",
+		"nameEn": "Mysterious Knight",
+		"nameZh": "神秘骑士",
+		"moves": [
+			{
+				"id": "BREAKER",
+				"titleEn": "Breaker",
+				"titleZh": "砸碎"
+			},
+			{
+				"id": "FLAIL",
+				"titleEn": "Flail",
+				"titleZh": "连枷"
+			},
+			{
+				"id": "RAM",
+				"titleEn": "Ram",
+				"titleZh": "撞击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "myte",
+		"nameEn": "Myte",
+		"nameZh": "异螨",
+		"moves": [
+			{
+				"id": "BIG_SUCK",
+				"titleEn": "Big Suck",
+				"titleZh": "大吸一口"
+			},
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "SUCK",
+				"titleEn": "Suck",
+				"titleZh": "吸吮"
+			},
+			{
+				"id": "TOXIC",
+				"titleEn": "Toxic Cornucopia",
+				"titleZh": "浓毒"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "nibbit",
+		"nameEn": "Nibbit",
+		"nameZh": "小啃兽",
+		"moves": [
+			{
+				"id": "BUTT",
+				"titleEn": "Butt",
+				"titleZh": "顶撞"
+			},
+			{
+				"id": "HESITANT_SLICE",
+				"titleEn": "Hesitant Slice",
+				"titleZh": "犹豫斩击"
+			},
+			{
+				"id": "HISS",
+				"titleEn": "Hiss",
+				"titleZh": "哈气"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "noisebot",
+		"nameEn": "Noisebot",
+		"nameZh": "噪音机器人",
+		"moves": [
+			{
+				"id": "NOISE",
+				"titleEn": "Noise",
+				"titleZh": "噪音"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "osty",
+		"nameEn": "Osty",
+		"nameZh": "奥斯提",
+		"moves": [],
+		"source": "core"
+	},
+	{
+		"slug": "ovicopter",
+		"nameEn": "Ovicopter",
+		"nameZh": "直飞产卵虫",
+		"moves": [
+			{
+				"id": "LAY_EGGS",
+				"titleEn": "Lay Eggs",
+				"titleZh": "产卵"
+			},
+			{
+				"id": "NUTRITIONAL_PASTE",
+				"titleEn": "Nutritional Paste",
+				"titleZh": "高营养糊糊"
+			},
+			{
+				"id": "SMASH",
+				"titleEn": "Smash",
+				"titleZh": "猛砸"
+			},
+			{
+				"id": "TENDERIZER",
+				"titleEn": "Tenderizer",
+				"titleZh": "嫩化"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "owl-magistrate",
+		"nameEn": "Owl Magistrate",
+		"nameZh": "猫头鹰法官",
+		"moves": [
+			{
+				"id": "JUDICIAL_FLIGHT",
+				"titleEn": "Judicial Flight",
+				"titleZh": "飞法行为"
+			},
+			{
+				"id": "MAGISTRATE_SCRUTINY",
+				"titleEn": "Magistrate Scrutiny",
+				"titleZh": "法官审查"
+			},
+			{
+				"id": "PECK_ASSAULT",
+				"titleEn": "Peck Assault",
+				"titleZh": "猛啄袭击"
+			},
+			{
+				"id": "VERDICT",
+				"titleEn": "Verdict",
+				"titleZh": "裁决"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "paels-legion",
+		"nameEn": "Pael's Legion",
+		"nameZh": "佩尔的士兵",
+		"moves": [
+			{
+				"id": "NOTHING",
+				"titleEn": "Nothing",
+				"titleZh": "无"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "parafright",
+		"nameEn": "Parafright",
+		"nameZh": "寄生惧魔",
+		"moves": [
+			{
+				"id": "SLAM",
+				"titleEn": "Slam",
+				"titleZh": "砸击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "phantasmal-gardener",
+		"nameEn": "Phantasmal Gardener",
+		"nameZh": "花园幽灵鳗",
+		"moves": [
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "ENLARGE",
+				"titleEn": "Enlarge",
+				"titleZh": "变大"
+			},
+			{
+				"id": "FLAIL",
+				"titleEn": "Flail",
+				"titleZh": "猛晃"
+			},
+			{
+				"id": "LASH",
+				"titleEn": "Lash",
+				"titleZh": "甩动"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "phrog-parasite",
+		"nameEn": "Phrog Parasite",
+		"nameZh": "异蛙寄生虫",
+		"moves": [
+			{
+				"id": "INFECT",
+				"titleEn": "Infect",
+				"titleZh": "感染"
+			},
+			{
+				"id": "LASH",
+				"titleEn": "Lash",
+				"titleZh": "甩动"
+			},
+			{
+				"id": "LEAP_SLAM",
+				"titleEn": "Leap Slam",
+				"titleZh": "跳跃猛砸"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "punch-construct",
+		"nameEn": "Punch Construct",
+		"nameZh": "拳击构装体",
+		"moves": [
+			{
+				"id": "FAST_PUNCH",
+				"titleEn": "Fast Punch",
+				"titleZh": "快速拳"
+			},
+			{
+				"id": "READY",
+				"titleEn": "READY",
+				"titleZh": "准备就绪"
+			},
+			{
+				"id": "STRONG_PUNCH",
+				"titleEn": "Strong Punch",
+				"titleZh": "强力拳"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "queen",
+		"nameEn": "Queen",
+		"nameZh": "女王",
+		"moves": [
+			{
+				"id": "BARRIER",
+				"titleEn": "Barrier",
+				"titleZh": "屏障"
+			},
+			{
+				"id": "BURN_BRIGHT_FOR_ME",
+				"titleEn": "Burn Bright for Me",
+				"titleZh": "为我尽力燃烧吧"
+			},
+			{
+				"id": "EXECUTION",
+				"titleEn": "Execution",
+				"titleZh": "处决"
+			},
+			{
+				"id": "IMPOSSIBLE",
+				"titleEn": "Impossible",
+				"titleZh": "绝无可能"
+			},
+			{
+				"id": "OFF_WITH_YOUR_HEAD",
+				"titleEn": "Off with Your Head",
+				"titleZh": "将头砍下"
+			},
+			{
+				"id": "SUMMON_1",
+				"titleEn": "Summon",
+				"titleZh": "召唤"
+			},
+			{
+				"id": "SUMMON_2",
+				"titleEn": "Summon",
+				"titleZh": "召唤"
+			},
+			{
+				"id": "YOURE_MINE",
+				"titleEn": "You're Mine",
+				"titleZh": "你是我的了"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "rocket",
+		"nameEn": "Rocket",
+		"nameZh": "火箭",
+		"moves": [
+			{
+				"id": "CHARGE_UP",
+				"titleEn": "Charge Up",
+				"titleZh": "蓄能"
+			},
+			{
+				"id": "LASER",
+				"titleEn": "Laser",
+				"titleZh": "激光"
+			},
+			{
+				"id": "PRECISION_BEAM",
+				"titleEn": "Precision Beam",
+				"titleZh": "精准光束"
+			},
+			{
+				"id": "RECHARGE",
+				"titleEn": "Recharge",
+				"titleZh": "重新充能"
+			},
+			{
+				"id": "TARGETING_RETICLE",
+				"titleEn": "Targeting Reticle",
+				"titleZh": "瞄准十字"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "scroll-of-biting",
+		"nameEn": "Scroll of Biting",
+		"nameZh": "咬人卷轴",
+		"moves": [
+			{
+				"id": "CHEW",
+				"titleEn": "Chew",
+				"titleZh": "咀嚼"
+			},
+			{
+				"id": "CHOMP",
+				"titleEn": "Chomp",
+				"titleZh": "大啃"
+			},
+			{
+				"id": "MORE_TEETH",
+				"titleEn": "More Teeth",
+				"titleZh": "更多牙齿"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "seapunk",
+		"nameEn": "Seapunk",
+		"nameZh": "海洋混混",
+		"moves": [
+			{
+				"id": "BUBBLE_BURP",
+				"titleEn": "Bubble Burp",
+				"titleZh": "吐泡泡"
+			},
+			{
+				"id": "SEA_KICK",
+				"titleEn": "Sea Kick",
+				"titleZh": "海洋踢"
+			},
+			{
+				"id": "SPINNING_KICK",
+				"titleEn": "Spinning Kick",
+				"titleZh": "回旋踢"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "sewer-clam",
+		"nameEn": "Sewer Clam",
+		"nameZh": "下水道蚌",
+		"moves": [
+			{
+				"id": "JET",
+				"titleEn": "Jet",
+				"titleZh": "喷射"
+			},
+			{
+				"id": "PRESSURIZE",
+				"titleEn": "Pressurize",
+				"titleZh": "增压"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "shrinker-beetle",
+		"nameEn": "Shrinker Beetle",
+		"nameZh": "缩小甲虫",
+		"moves": [
+			{
+				"id": "CHOMP",
+				"titleEn": "Chomp",
+				"titleZh": "大啃"
+			},
+			{
+				"id": "SHRINKER",
+				"titleEn": "Shrinker",
+				"titleZh": "缩小"
+			},
+			{
+				"id": "STOMP",
+				"titleEn": "Stomp",
+				"titleZh": "践踏"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "skulking-colony",
+		"nameEn": "Skulking Colony",
+		"nameZh": "鬼祟珊瑚群",
+		"moves": [
+			{
+				"id": "INERTIA",
+				"titleEn": "Inertia",
+				"titleZh": "惯性"
+			},
+			{
+				"id": "SUPER_CRAB",
+				"titleEn": "Super Crab",
+				"titleZh": "超级蟹"
+			},
+			{
+				"id": "ZOOM",
+				"titleEn": "Zoom",
+				"titleZh": "猛冲"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "slimed-berserker",
+		"nameEn": "Slimed Berserker",
+		"nameZh": "史莱姆狂战士",
+		"moves": [
+			{
+				"id": "FURIOUS_PUMMELING",
+				"titleEn": "Furious Pummeling",
+				"titleZh": "愤怒拍打"
+			},
+			{
+				"id": "SLIME_WHIRLWIND",
+				"titleEn": "Slime Whirlwind",
+				"titleZh": "黏液旋风"
+			},
+			{
+				"id": "VOMIT_ICHOR",
+				"titleEn": "Vomit Ichor",
+				"titleZh": "呕吐脓液"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "slithering-strangler",
+		"nameEn": "Slithering Strangler",
+		"nameZh": "蛇行扼杀者",
+		"moves": [
+			{
+				"id": "CONSTRICT",
+				"titleEn": "Constrict",
+				"titleZh": "缠身"
+			},
+			{
+				"id": "LASH",
+				"titleEn": "Lash",
+				"titleZh": "甩动"
+			},
+			{
+				"id": "THWACK",
+				"titleEn": "Thwack",
+				"titleZh": "重击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "sludge-spinner",
+		"nameEn": "Sludge Spinner",
+		"nameZh": "淤泥旋螺",
+		"moves": [
+			{
+				"id": "OIL_SPRAY",
+				"titleEn": "Oil Spray",
+				"titleZh": "喷油"
+			},
+			{
+				"id": "RAGE",
+				"titleEn": "Rage",
+				"titleZh": "狂怒"
+			},
+			{
+				"id": "SLAM",
+				"titleEn": "Slam",
+				"titleZh": "砸击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "slumbering-beetle",
+		"nameEn": "Slumbering Beetle",
+		"nameZh": "熟睡甲虫",
+		"moves": [
+			{
+				"id": "CRASH",
+				"titleEn": "Crash",
+				"titleZh": "冲击"
+			},
+			{
+				"id": "RESOLVE",
+				"titleEn": "Resolve",
+				"titleZh": "坚毅"
+			},
+			{
+				"id": "ROLL_OUT",
+				"titleEn": "Roll Out",
+				"titleZh": "出击"
+			},
+			{
+				"id": "SNORE",
+				"titleEn": "Snore",
+				"titleZh": "打鼾"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "snapping-jaxfruit",
+		"nameEn": "Snapping Jaxfruit",
+		"nameZh": "闪光贾克斯果",
+		"moves": [
+			{
+				"id": "COLLECT_POWER",
+				"titleEn": "Collect Power",
+				"titleZh": "积蓄力量"
+			},
+			{
+				"id": "ENERGY_ORB",
+				"titleEn": "Energy Orb",
+				"titleZh": "能量球"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "sneaky-gremlin",
+		"nameEn": "Sneaky Gremlin",
+		"nameZh": "卑鄙地精",
+		"moves": [
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "soul-fysh",
+		"nameEn": "Soul Fysh",
+		"nameZh": "灵魂异鱼",
+		"moves": [
+			{
+				"id": "BURP",
+				"titleEn": "Burp",
+				"titleZh": "打嗝"
+			},
+			{
+				"id": "DE_GAS",
+				"titleEn": "De-Gas",
+				"titleZh": "排气"
+			},
+			{
+				"id": "SCREAM",
+				"titleEn": "Scream",
+				"titleZh": "尖叫"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "soul-nexus",
+		"nameEn": "Soul Nexus",
+		"nameZh": "灵魂枢纽",
+		"moves": [
+			{
+				"id": "DRAIN_LIFE",
+				"titleEn": "Drain Life",
+				"titleZh": "汲取生命"
+			},
+			{
+				"id": "MAELSTROM",
+				"titleEn": "Maelstrom",
+				"titleZh": "大漩涡"
+			},
+			{
+				"id": "SOUL_BURN",
+				"titleEn": "Soul Burn",
+				"titleZh": "灵魂灼烧"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "spectral-knight",
+		"nameEn": "Spectral Knight",
+		"nameZh": "幽灵骑士",
+		"moves": [
+			{
+				"id": "HEX",
+				"titleEn": "Hex",
+				"titleZh": "恶咒"
+			},
+			{
+				"id": "SOUL_FLAME",
+				"titleEn": "Soul Flame",
+				"titleZh": "灵魂火焰"
+			},
+			{
+				"id": "SOUL_SLASH",
+				"titleEn": "Soul Slash",
+				"titleZh": "灵魂斩击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "spiny-toad",
+		"nameEn": "Spiny Toad",
+		"nameZh": "棘刺蟾蜍",
+		"moves": [
+			{
+				"id": "PROTRUDING_SPIKES",
+				"titleEn": "Protruding Spikes",
+				"titleZh": "伸出尖刺"
+			},
+			{
+				"id": "SPIKE_EXPLOSION",
+				"titleEn": "Spike Explosion",
+				"titleZh": "尖刺爆破"
+			},
+			{
+				"id": "TONGUE_LASH",
+				"titleEn": "Tongue Lash",
+				"titleZh": "吐舌"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "stabbot",
+		"nameEn": "Stabbot",
+		"nameZh": "戳刺机器人",
+		"moves": [
+			{
+				"id": "STAB",
+				"titleEn": "Stab",
+				"titleZh": "戳刺"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "terror-eel",
+		"nameEn": "Terror Eel",
+		"nameZh": "骇鳗",
+		"moves": [
+			{
+				"id": "Crash",
+				"titleEn": "Crash",
+				"titleZh": "冲击"
+			},
+			{
+				"id": "Thrash",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "test-subject",
+		"nameEn": "Test Subject #C{Count}",
+		"nameZh": "实验体 #C{Count}",
+		"moves": [
+			{
+				"id": "BIG_POUNCE_MOVE",
+				"titleEn": "Big Pounce",
+				"titleZh": "猛扑"
+			},
+			{
+				"id": "BITE_MOVE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "BURNING_GROWL_MOVE",
+				"titleEn": "Burning Growl",
+				"titleZh": "燃烧咆哮"
+			},
+			{
+				"id": "MULTI_CLAW_MOVE",
+				"titleEn": "Multi-Claw",
+				"titleZh": "多爪攻击"
+			},
+			{
+				"id": "PHASE3_LACERATE_MOVE",
+				"titleEn": "Lacerate",
+				"titleZh": "裂伤"
+			},
+			{
+				"id": "POUNCE_MOVE",
+				"titleEn": "Pounce",
+				"titleZh": "扑击"
+			},
+			{
+				"id": "RESPAWN_MOVE",
+				"titleEn": "Respawn",
+				"titleZh": "重生"
+			},
+			{
+				"id": "SKULL_BASH_MOVE",
+				"titleEn": "Skull Bash",
+				"titleZh": "颅骨重击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-adversary-mk-one",
+		"nameEn": "The Adversary Mk 1",
+		"nameZh": "对手1型",
+		"moves": [
+			{
+				"id": "BARRAGE",
+				"titleEn": "Barrage",
+				"titleZh": "弹幕"
+			},
+			{
+				"id": "BEAM",
+				"titleEn": "Beam",
+				"titleZh": "光束"
+			},
+			{
+				"id": "SMASH",
+				"titleEn": "Smash",
+				"titleZh": "砸击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-adversary-mk-three",
+		"nameEn": "The Adversary Mk 3",
+		"nameZh": "对手3型",
+		"moves": [
+			{
+				"id": "BARRAGE",
+				"titleEn": "Barrage",
+				"titleZh": "弹幕"
+			},
+			{
+				"id": "CRASH",
+				"titleEn": "Crash",
+				"titleZh": "冲击"
+			},
+			{
+				"id": "FLAME_BEAM",
+				"titleEn": "Flame Beam",
+				"titleZh": "火焰光束"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-adversary-mk-two",
+		"nameEn": "The Adversary Mk 2",
+		"nameZh": "对手2型",
+		"moves": [
+			{
+				"id": "BARRAGE",
+				"titleEn": "Barrage",
+				"titleZh": "弹幕"
+			},
+			{
+				"id": "BASH",
+				"titleEn": "Bash",
+				"titleZh": "猛击"
+			},
+			{
+				"id": "FLAME_BEAM",
+				"titleEn": "Flame Beam",
+				"titleZh": "火焰光束"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-forgotten",
+		"nameEn": "The Forgotten",
+		"nameZh": "遗忘之物",
+		"moves": [
+			{
+				"id": "DREAD",
+				"titleEn": "Dread",
+				"titleZh": "恐惧"
+			},
+			{
+				"id": "MIASMA",
+				"titleEn": "Miasma",
+				"titleZh": "瘴气"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-insatiable",
+		"nameEn": "The Insatiable",
+		"nameZh": "无厌沙虫",
+		"moves": [
+			{
+				"id": "LIQUIFY_GROUND",
+				"titleEn": "Liquify Ground",
+				"titleZh": "液化地面"
+			},
+			{
+				"id": "LUNGING_BITE",
+				"titleEn": "Lunging Bite",
+				"titleZh": "前扑啃咬"
+			},
+			{
+				"id": "SALIVATE",
+				"titleEn": "Salivate",
+				"titleZh": "分泌唾液"
+			},
+			{
+				"id": "THRASH",
+				"titleEn": "Thrash",
+				"titleZh": "撕扯"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-lost",
+		"nameEn": "The Lost",
+		"nameZh": "失落之物",
+		"moves": [
+			{
+				"id": "DEBILITATING_SMOG",
+				"titleEn": "Debilitating Smog",
+				"titleZh": "致残雾霾"
+			},
+			{
+				"id": "EYE_LASERS",
+				"titleEn": "Eye Lasers",
+				"titleZh": "眼部激光"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "the-obscura",
+		"nameEn": "The Obscura",
+		"nameZh": "胧光怪",
+		"moves": [
+			{
+				"id": "HARDENING_STRIKE",
+				"titleEn": "Hardening Strike",
+				"titleZh": "硬化攻击"
+			},
+			{
+				"id": "ILLUSION",
+				"titleEn": "Illusion",
+				"titleZh": "幻象"
+			},
+			{
+				"id": "PIERCING_GAZE",
+				"titleEn": "Piercing Gaze",
+				"titleZh": "锐利凝视"
+			},
+			{
+				"id": "WAIL",
+				"titleEn": "Wail",
+				"titleZh": "哭号"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "thieving-hopper",
+		"nameEn": "Thieving Hopper",
+		"nameZh": "偷窃草蜢",
+		"moves": [
+			{
+				"id": "ESCAPE",
+				"titleEn": "Escape",
+				"titleZh": "逃跑"
+			},
+			{
+				"id": "FLUTTER",
+				"titleEn": "Flutter",
+				"titleZh": "振翅"
+			},
+			{
+				"id": "HAT_TRICK",
+				"titleEn": "Hat Trick",
+				"titleZh": "帽子戏法"
+			},
+			{
+				"id": "NAB",
+				"titleEn": "Nab",
+				"titleZh": "抢夺"
+			},
+			{
+				"id": "THIEVERY",
+				"titleEn": "Thievery",
+				"titleZh": "偷盗"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "toadpole",
+		"nameEn": "Toadpole",
+		"nameZh": "蟾蜍蝌蚪",
+		"moves": [
+			{
+				"id": "SPIKEN",
+				"titleEn": "Spiken",
+				"titleZh": "带刺"
+			},
+			{
+				"id": "SPIKE_SPIT",
+				"titleEn": "Spike Spit",
+				"titleZh": "吐刺"
+			},
+			{
+				"id": "WHIRL",
+				"titleEn": "Whirl",
+				"titleZh": "旋转"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "torch-head-amalgam",
+		"nameEn": "Torch Head Amalgam",
+		"nameZh": "火炬头聚合体",
+		"moves": [
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "tough-egg",
+		"nameEn": "Tough Egg",
+		"nameZh": "结实的卵",
+		"moves": [
+			{
+				"id": "HATCH",
+				"titleEn": "HATCH",
+				"titleZh": "孵化"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "tracker-ruby-raider",
+		"nameEn": "Tracker Raider",
+		"nameZh": "劫掠者追踪手",
+		"moves": [
+			{
+				"id": "HOUNDS",
+				"titleEn": "Unleash the Hounds",
+				"titleZh": "放狗"
+			},
+			{
+				"id": "TRACK",
+				"titleEn": "Track",
+				"titleZh": "追踪"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "tunneler",
+		"nameEn": "Tunneler",
+		"nameZh": "地道虫",
+		"moves": [
+			{
+				"id": "BELOW",
+				"titleEn": "Attack from Below",
+				"titleZh": "下方攻击"
+			},
+			{
+				"id": "BITE",
+				"titleEn": "Bite",
+				"titleZh": "啃咬"
+			},
+			{
+				"id": "BURROW",
+				"titleEn": "Burrow",
+				"titleZh": "钻洞"
+			},
+			{
+				"id": "STRIKE",
+				"titleEn": "Emerging Strike",
+				"titleZh": "冒头打击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "turret-operator",
+		"nameEn": "Turret Operator",
+		"nameZh": "高塔炮手",
+		"moves": [
+			{
+				"id": "LOADING",
+				"titleEn": "Loading",
+				"titleZh": "上弹"
+			},
+			{
+				"id": "UNLOAD",
+				"titleEn": "Unload!",
+				"titleZh": "弹雨！"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "twig-slime-m",
+		"nameEn": "Twig Slime (M)",
+		"nameZh": "树枝史莱姆（中）",
+		"moves": [
+			{
+				"id": "CHOMP",
+				"titleEn": "Chomp",
+				"titleZh": "大啃"
+			},
+			{
+				"id": "POKEY_POUNCE",
+				"titleEn": "Pokey Pounce",
+				"titleZh": "戳刺扑击"
+			},
+			{
+				"id": "STICKY_SHOT",
+				"titleEn": "Sticky Shot",
+				"titleZh": "黏糊射击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "twig-slime-s",
+		"nameEn": "Twig Slime (S)",
+		"nameZh": "树枝史莱姆（小）",
+		"moves": [
+			{
+				"id": "GOOP",
+				"titleEn": "Goop",
+				"titleZh": "黏液"
+			},
+			{
+				"id": "TACKLE",
+				"titleEn": "Tackle",
+				"titleZh": "冲撞"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "two-tailed-rat",
+		"nameEn": "Two-Tailed Rat",
+		"nameZh": "双尾鼠",
+		"moves": [
+			{
+				"id": "CALL_FOR_BACKUP",
+				"titleEn": "Call for Backup",
+				"titleZh": "呼唤后援"
+			},
+			{
+				"id": "DISEASE_BITE",
+				"titleEn": "Disease Bite",
+				"titleZh": "疾病啃咬"
+			},
+			{
+				"id": "SCRATCH",
+				"titleEn": "Scratch",
+				"titleZh": "抓挠"
+			},
+			{
+				"id": "SCREECH",
+				"titleEn": "Screech",
+				"titleZh": "尖声嘶吼"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "vantom",
+		"nameEn": "Vantom",
+		"nameZh": "墨影幻灵",
+		"moves": [
+			{
+				"id": "DISMEMBER",
+				"titleEn": "Dismember",
+				"titleZh": "肢解"
+			},
+			{
+				"id": "INKY_LANCE",
+				"titleEn": "Inky Lance",
+				"titleZh": "墨水长枪"
+			},
+			{
+				"id": "INK_BLOT",
+				"titleEn": "Ink Blot",
+				"titleZh": "墨迹"
+			},
+			{
+				"id": "PREPARE",
+				"titleEn": "Prepare",
+				"titleZh": "准备"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "vine-shambler",
+		"nameEn": "Vine Shambler",
+		"nameZh": "藤蔓蹒跚者",
+		"moves": [
+			{
+				"id": "CHOMP",
+				"titleEn": "Chomp",
+				"titleZh": "大啃"
+			},
+			{
+				"id": "GRASPING_VINES",
+				"titleEn": "Grasping Vines",
+				"titleZh": "紧绕藤蔓"
+			},
+			{
+				"id": "SWIPE",
+				"titleEn": "Swipe",
+				"titleZh": "挥击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "waterfall-giant",
+		"nameEn": "Waterfall Giant",
+		"nameZh": "瀑布巨兽",
+		"moves": [
+			{
+				"id": "PRESSURE_GUN",
+				"titleEn": "Pressure Gun",
+				"titleZh": "压力炮"
+			},
+			{
+				"id": "PRESSURIZE",
+				"titleEn": "Pressurize",
+				"titleZh": "增压"
+			},
+			{
+				"id": "RAM",
+				"titleEn": "Ram",
+				"titleZh": "撞击"
+			},
+			{
+				"id": "SIPHON",
+				"titleEn": "Siphon",
+				"titleZh": "虹吸"
+			},
+			{
+				"id": "STOMP",
+				"titleEn": "Stomp",
+				"titleZh": "践踏"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "wriggler",
+		"nameEn": "Wriggler",
+		"nameZh": "扭动虫",
+		"moves": [
+			{
+				"id": "PARASITIZE_PLAYER",
+				"titleEn": "Parasitize Player",
+				"titleZh": "寄生"
+			},
+			{
+				"id": "WRIGGLE_STRIKE",
+				"titleEn": "Wriggle Strike",
+				"titleZh": "扭动打击"
+			}
+		],
+		"source": "core"
+	},
+	{
+		"slug": "zapbot",
+		"nameEn": "Zapbot",
+		"nameZh": "电击机器人",
+		"moves": [
+			{
+				"id": "ZAP",
+				"titleEn": "Zap",
+				"titleZh": "电击"
+			}
+		],
+		"source": "core"
+	}
+]

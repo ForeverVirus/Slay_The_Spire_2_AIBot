@@ -83,45 +83,136 @@ public sealed class GuideKnowledgeBase
         return Builds.Where(b => b.CharacterId == characterId);
     }
 
+    public IReadOnlyList<BuildGuideEntry> FindBuilds(string? query, int characterId, int maxResults = 5)
+    {
+        var builds = Builds.Where(build => build.CharacterId == characterId);
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return builds.Take(maxResults).ToList();
+        }
+
+        var normalized = Normalize(query);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return builds.Take(maxResults).ToList();
+        }
+
+        return builds
+            .Select(build => new
+            {
+                Build = build,
+                Score = ScoreSelectors(normalized, build, new Func<BuildGuideEntry, string?>[]
+                {
+                    entry => entry.NameEn,
+                    entry => entry.NameZh,
+                    entry => entry.Slug,
+                    entry => entry.SummaryEn,
+                    entry => entry.SummaryZh,
+                    entry => entry.StrategyEn,
+                    entry => entry.StrategyZh,
+                    entry => entry.TipsEn,
+                    entry => entry.TipsZh
+                })
+            })
+            .Where(entry => entry.Score > 0)
+            .OrderByDescending(entry => entry.Score)
+            .ThenBy(entry => entry.Build.NameEn, StringComparer.OrdinalIgnoreCase)
+            .Take(maxResults)
+            .Select(entry => entry.Build)
+            .ToList();
+    }
+
     public CardGuideEntry? FindCard(string cardName, int? characterId = null)
     {
-        var normalized = Normalize(RemoveCountSuffix(cardName));
-        return Cards.FirstOrDefault(card =>
-            (characterId is null || card.CharacterId == characterId.Value) &&
-            (Normalize(card.Slug) == normalized || Normalize(card.NameEn) == normalized || Normalize(card.NameZh) == normalized));
+        return FindFilteredEntry(
+            Cards,
+            cardName,
+            card => characterId is null || card.CharacterId == characterId.Value,
+            card => card.Slug,
+            card => card.NameEn,
+            card => card.NameZh,
+            card => card.DescriptionZh,
+            card => card.DescriptionEn);
     }
 
     public RelicGuideEntry? FindRelic(string relicName, int? characterId = null)
     {
-        var normalized = Normalize(relicName);
-        return Relics.FirstOrDefault(relic =>
-            (characterId is null || relic.CharacterId is null || relic.CharacterId == characterId.Value) &&
-            (Normalize(relic.Slug) == normalized || Normalize(relic.NameEn) == normalized || Normalize(relic.NameZh) == normalized));
+        return FindFilteredEntry(
+            Relics,
+            relicName,
+            relic => characterId is null || relic.CharacterId is null || relic.CharacterId == characterId.Value,
+            relic => relic.Slug,
+            relic => relic.NameEn,
+            relic => relic.NameZh,
+            relic => relic.DescriptionZh,
+            relic => relic.DescriptionEn);
     }
 
     public PotionEntry? FindPotion(string potionName)
     {
-        return FindNamedEntry(Potions, potionName, potion => potion.Slug, potion => potion.NameEn, potion => potion.NameZh);
+        return FindNamedEntry(
+            Potions,
+            potionName,
+            potion => potion.Slug,
+            potion => potion.NameEn,
+            potion => potion.NameZh,
+            potion => potion.DescriptionZh,
+            potion => potion.DescriptionEn,
+            potion => potion.Usage);
     }
 
     public PowerEntry? FindPower(string powerName)
     {
-        return FindNamedEntry(Powers, powerName, power => power.Slug, power => power.NameEn, power => power.NameZh);
+        return FindNamedEntry(
+            Powers,
+            powerName,
+            power => power.Slug,
+            power => power.NameEn,
+            power => power.NameZh,
+            power => power.DescriptionZh,
+            power => power.DescriptionEn,
+            power => power.PowerType);
     }
 
     public EnemyEntry? FindEnemy(string enemyName)
     {
-        return FindNamedEntry(Enemies, enemyName, enemy => enemy.Slug, enemy => enemy.NameEn, enemy => enemy.NameZh);
+        return FindNamedEntry(
+            Enemies,
+            enemyName,
+            enemy => enemy.Slug,
+            enemy => enemy.NameEn,
+            enemy => enemy.NameZh,
+            enemy => enemy.DescriptionZh,
+            enemy => enemy.DescriptionEn,
+            enemy => string.Join(' ', enemy.Moves.Select(move => move.Id)),
+            enemy => string.Join(' ', enemy.Moves.Select(move => move.TitleEn)),
+            enemy => string.Join(' ', enemy.Moves.Select(move => move.TitleZh)),
+            enemy => string.Join(' ', enemy.Moves.Select(move => move.BanterZh)),
+            enemy => string.Join(' ', enemy.Moves.Select(move => move.BanterEn)));
     }
 
     public EventEntry? FindEvent(string eventName)
     {
-        return FindNamedEntry(Events, eventName, entry => entry.Slug, entry => entry.NameEn, entry => entry.NameZh);
+        return FindNamedEntry(
+            Events,
+            eventName,
+            entry => entry.Slug,
+            entry => entry.NameEn,
+            entry => entry.NameZh,
+            entry => entry.DescriptionZh,
+            entry => entry.DescriptionEn);
     }
 
     public EnchantmentEntry? FindEnchantment(string enchantmentName)
     {
-        return FindNamedEntry(Enchantments, enchantmentName, entry => entry.Slug, entry => entry.NameEn, entry => entry.NameZh);
+        return FindNamedEntry(
+            Enchantments,
+            enchantmentName,
+            entry => entry.Slug,
+            entry => entry.NameEn,
+            entry => entry.NameZh,
+            entry => entry.DescriptionZh,
+            entry => entry.DescriptionEn);
     }
 
     public IReadOnlyList<MechanicRule> SearchMechanicRules(string query, int maxResults = 5)
@@ -160,7 +251,7 @@ public sealed class GuideKnowledgeBase
                 var guide = FindCard(entry, characterId);
                 return guide is null
                     ? $"- {entry}"
-                    : $"- {entry}: {guide.CardType ?? "Unknown"}; {TrimSnippet(guide.DescriptionEn, 120)}";
+                    : $"- {entry}: {guide.CardType ?? "Unknown"}; {TrimSnippet(SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn), 120)}";
             })
             .ToList();
 
@@ -176,7 +267,7 @@ public sealed class GuideKnowledgeBase
                 var guide = FindRelic(name, characterId);
                 return guide is null
                     ? $"- {name}"
-                    : $"- {name}: {TrimSnippet(guide.DescriptionEn, 120)}";
+                    : $"- {name}: {TrimSnippet(SelectBestSummaryText(guide.DescriptionZh, guide.DescriptionEn), 120)}";
             })
             .ToList();
 
@@ -197,7 +288,7 @@ public sealed class GuideKnowledgeBase
             var potion = FindPotion(name);
             return potion is null
                 ? $"- {name}"
-                : $"- {name}: {(string.IsNullOrWhiteSpace(potion.Rarity) ? "Potion" : potion.Rarity)}; {TrimSnippet(potion.DescriptionEn ?? potion.Usage, 120)}";
+                : $"- {name}: {(string.IsNullOrWhiteSpace(potion.Rarity) ? "Potion" : potion.Rarity)}; {TrimSnippet(SelectBestSummaryText(potion.DescriptionZh, potion.DescriptionEn, potion.Usage), 120)}";
         }).ToList();
         if (snippets.Count > 0)
         {
@@ -424,6 +515,12 @@ public sealed class GuideKnowledgeBase
     private static TEntry? FindNamedEntry<TEntry>(IReadOnlyList<TEntry> entries, string query, params Func<TEntry, string?>[] selectors)
         where TEntry : class
     {
+        return FindFilteredEntry(entries, query, static _ => true, selectors);
+    }
+
+    private static TEntry? FindFilteredEntry<TEntry>(IEnumerable<TEntry> entries, string query, Func<TEntry, bool> filter, params Func<TEntry, string?>[] selectors)
+        where TEntry : class
+    {
         var normalized = Normalize(RemoveCountSuffix(query));
         if (string.IsNullOrWhiteSpace(normalized))
         {
@@ -431,6 +528,7 @@ public sealed class GuideKnowledgeBase
         }
 
         return entries
+            .Where(filter)
             .Select(entry => new
             {
                 Entry = entry,
@@ -440,6 +538,11 @@ public sealed class GuideKnowledgeBase
             .OrderByDescending(entry => entry.Score)
             .Select(entry => entry.Entry)
             .FirstOrDefault();
+    }
+
+    private static string? SelectBestSummaryText(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
     }
 
     private static int ScoreSelectors<TEntry>(string normalizedQuery, TEntry entry, IEnumerable<Func<TEntry, string?>> selectors)

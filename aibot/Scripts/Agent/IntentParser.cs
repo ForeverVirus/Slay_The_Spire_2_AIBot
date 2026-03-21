@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Potions;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using aibot.Scripts.Agent.Skills;
 using aibot.Scripts.Core;
@@ -203,9 +204,20 @@ public sealed class IntentParser
             return raw;
         }
 
+        var analysis = _runtime.GetCurrentAnalysis();
+        var matchedGuide = _runtime.KnowledgeBase?.FindCard(raw, analysis.CharacterId) ?? _runtime.KnowledgeBase?.FindCard(raw);
+        var normalizedRaw = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(raw);
+
         return PileType.Hand.GetPile(player).Cards
-            .Select(card => card.Title)
-            .FirstOrDefault(title => title.Contains(raw, StringComparison.OrdinalIgnoreCase)) ?? raw;
+            .Select(card => new
+            {
+                card.Title,
+                Score = ScoreCardMatch(card, normalizedRaw, matchedGuide)
+            })
+            .Where(entry => entry.Score > 0)
+            .OrderByDescending(entry => entry.Score)
+            .Select(entry => entry.Title)
+            .FirstOrDefault() ?? raw;
     }
 
     private string? ResolvePotionName(string? raw)
@@ -222,9 +234,19 @@ public sealed class IntentParser
             return raw;
         }
 
+        var matchedGuide = _runtime.KnowledgeBase?.FindPotion(raw);
+        var normalizedRaw = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(raw);
+
         return player.Potions
-            .Select(potion => potion.Id.Entry)
-            .FirstOrDefault(name => name.Contains(raw, StringComparison.OrdinalIgnoreCase)) ?? raw;
+            .Select(potion => new
+            {
+                Name = potion.Id.Entry,
+                Score = ScorePotionMatch(potion, normalizedRaw, matchedGuide)
+            })
+            .Where(entry => entry.Score > 0)
+            .OrderByDescending(entry => entry.Score)
+            .Select(entry => entry.Name)
+            .FirstOrDefault() ?? raw;
     }
 
     private static bool ContainsAny(string text, params string[] keywords)
@@ -248,6 +270,78 @@ public sealed class IntentParser
         }
 
         return null;
+    }
+
+    private int ScoreCardMatch(CardModel card, string normalizedRaw, aibot.Scripts.Knowledge.CardGuideEntry? matchedGuide)
+    {
+        var score = ScoreValue(normalizedRaw, card.Title, card.Id.Entry);
+        if (matchedGuide is null)
+        {
+            return score;
+        }
+
+        score = Math.Max(score, ScoreValue(normalizedRaw, matchedGuide.Slug, matchedGuide.NameEn, matchedGuide.NameZh));
+        if (GuideMatchesCard(card, matchedGuide))
+        {
+            score += 50;
+        }
+
+        return score;
+    }
+
+    private static bool GuideMatchesCard(CardModel card, aibot.Scripts.Knowledge.CardGuideEntry guide)
+    {
+        var normalizedId = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(card.Id.Entry);
+        var normalizedTitle = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(card.Title);
+        return normalizedId == aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(guide.Slug)
+            || normalizedTitle == aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(guide.NameEn)
+            || normalizedTitle == aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(guide.NameZh);
+    }
+
+    private int ScorePotionMatch(PotionModel potion, string normalizedRaw, aibot.Scripts.Knowledge.PotionEntry? matchedGuide)
+    {
+        var score = ScoreValue(normalizedRaw, potion.Id.Entry, potion.Title.GetFormattedText());
+        if (matchedGuide is null)
+        {
+            return score;
+        }
+
+        score = Math.Max(score, ScoreValue(normalizedRaw, matchedGuide.Slug, matchedGuide.NameEn, matchedGuide.NameZh));
+        var normalizedId = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(potion.Id.Entry);
+        if (normalizedId == aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(matchedGuide.Slug))
+        {
+            score += 50;
+        }
+
+        return score;
+    }
+
+    private static int ScoreValue(string normalizedRaw, params string?[] candidates)
+    {
+        var score = 0;
+        foreach (var candidate in candidates)
+        {
+            var normalizedCandidate = aibot.Scripts.Knowledge.GuideKnowledgeBase.Normalize(candidate);
+            if (string.IsNullOrWhiteSpace(normalizedCandidate))
+            {
+                continue;
+            }
+
+            if (normalizedCandidate == normalizedRaw)
+            {
+                score = Math.Max(score, 100);
+            }
+            else if (normalizedCandidate.Contains(normalizedRaw, StringComparison.OrdinalIgnoreCase))
+            {
+                score = Math.Max(score, 70);
+            }
+            else if (normalizedRaw.Contains(normalizedCandidate, StringComparison.OrdinalIgnoreCase))
+            {
+                score = Math.Max(score, 40);
+            }
+        }
+
+        return score;
     }
 
     private AgentSkillParameters NormalizeSkillParameters(string skillName, AgentSkillParameters parameters)

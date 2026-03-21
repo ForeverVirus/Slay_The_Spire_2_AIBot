@@ -21,7 +21,8 @@ public sealed class LookupRelicTool : RuntimeBackedToolBase
         }
 
         var analysis = Runtime.GetCurrentAnalysis();
-        var relic = Runtime.KnowledgeBase.FindRelic(parameters.Trim(), analysis.CharacterId);
+        var relic = Runtime.KnowledgeBase.FindRelic(parameters.Trim(), analysis.CharacterId)
+            ?? Runtime.KnowledgeBase.FindRelic(parameters.Trim());
         if (relic is null)
         {
             return Task.FromResult($"未在当前知识库中找到遗物：{parameters.Trim()}");
@@ -30,9 +31,13 @@ public sealed class LookupRelicTool : RuntimeBackedToolBase
         var builder = new StringBuilder();
         builder.AppendLine($"遗物：{relic.NameEn} / {relic.NameZh}");
         builder.AppendLine($"Slug：{relic.Slug}");
+        if (!string.IsNullOrWhiteSpace(relic.DescriptionZh))
+        {
+            builder.AppendLine($"描述(ZH)：{relic.DescriptionZh}");
+        }
         if (!string.IsNullOrWhiteSpace(relic.DescriptionEn))
         {
-            builder.AppendLine($"描述：{relic.DescriptionEn}");
+            builder.AppendLine($"描述(EN)：{relic.DescriptionEn}");
         }
         return Task.FromResult(builder.ToString().Trim());
     }

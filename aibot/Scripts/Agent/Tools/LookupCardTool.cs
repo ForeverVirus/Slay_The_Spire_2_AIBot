@@ -21,7 +21,8 @@ public sealed class LookupCardTool : RuntimeBackedToolBase
         }
 
         var analysis = Runtime.GetCurrentAnalysis();
-        var card = Runtime.KnowledgeBase.FindCard(parameters.Trim(), analysis.CharacterId);
+        var card = Runtime.KnowledgeBase.FindCard(parameters.Trim(), analysis.CharacterId)
+            ?? Runtime.KnowledgeBase.FindCard(parameters.Trim());
         if (card is null)
         {
             return Task.FromResult($"未在当前知识库中找到卡牌：{parameters.Trim()}");
@@ -31,9 +32,13 @@ public sealed class LookupCardTool : RuntimeBackedToolBase
         builder.AppendLine($"卡牌：{card.NameEn} / {card.NameZh}");
         builder.AppendLine($"Slug：{card.Slug}");
         builder.AppendLine($"类型：{card.CardType ?? "Unknown"}");
+        if (!string.IsNullOrWhiteSpace(card.DescriptionZh))
+        {
+            builder.AppendLine($"描述(ZH)：{card.DescriptionZh}");
+        }
         if (!string.IsNullOrWhiteSpace(card.DescriptionEn))
         {
-            builder.AppendLine($"描述：{card.DescriptionEn}");
+            builder.AppendLine($"描述(EN)：{card.DescriptionEn}");
         }
         return Task.FromResult(builder.ToString().Trim());
     }
