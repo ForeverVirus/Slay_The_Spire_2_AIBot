@@ -109,16 +109,23 @@ public static class CombatAdvisor
     public static async Task<CombatDecision?> GetCombatDecisionAsync(AiBotRuntime runtime, CancellationToken cancellationToken)
     {
         var player = GetPlayer();
-        if (player?.Creature?.CombatState is null || runtime.DecisionEngine is null)
+        if (!CombatActionGuard.CanTakeLocalTurnActions(player) || runtime.DecisionEngine is null)
         {
             return null;
         }
 
-        var hand = PileType.Hand.GetPile(player).Cards.ToList();
+        var localPlayer = player!;
+        var combatState = localPlayer.Creature?.CombatState;
+        if (combatState is null)
+        {
+            return null;
+        }
+
+        var hand = PileType.Hand.GetPile(localPlayer).Cards.ToList();
         var playable = hand.Where(CanPlay).ToList();
-        var enemies = player.Creature.CombatState.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+        var enemies = combatState.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
         var analysis = runtime.GetCurrentAnalysis();
-        return await runtime.DecisionEngine.ChooseCombatActionAsync(player, playable, enemies, analysis, cancellationToken);
+        return await runtime.DecisionEngine.ChooseCombatActionAsync(localPlayer, playable, enemies, analysis, cancellationToken);
     }
 
     public static async Task<string> ExecuteCombatDecisionAsync(AiBotRuntime runtime, CombatDecision decision, CancellationToken cancellationToken)

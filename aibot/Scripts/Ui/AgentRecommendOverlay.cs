@@ -493,12 +493,13 @@ public sealed partial class AgentRecommendOverlay : CanvasLayer
 
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        if (player is null)
+        if (!CombatActionGuard.CanTakeLocalTurnActions(player))
         {
             return false;
         }
 
-        var hand = PileType.Hand.GetPile(player).Cards.ToList();
+        var localPlayer = player!;
+        var hand = PileType.Hand.GetPile(localPlayer).Cards.ToList();
         var playable = hand.Where(CanRecommendPlayCard).ToList();
         if (playable.Count == 0)
         {
@@ -514,9 +515,9 @@ public sealed partial class AgentRecommendOverlay : CanvasLayer
             return false;
         }
 
-        var enemies = player.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+        var enemies = localPlayer.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
         var analysis = _runtime.GetCurrentAnalysis();
-        var decision = await _runtime.DecisionEngine.ChooseCombatActionAsync(player, playable, enemies, analysis, CancellationToken.None);
+        var decision = await _runtime.DecisionEngine.ChooseCombatActionAsync(localPlayer, playable, enemies, analysis, CancellationToken.None);
         if (decision.EndTurn || decision.Card is null)
         {
             return false;

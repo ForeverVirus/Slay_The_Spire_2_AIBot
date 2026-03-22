@@ -1,8 +1,6 @@
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using aibot.Scripts.Core;
@@ -17,7 +15,7 @@ public sealed class PlayCardSkill : RuntimeBackedSkillBase
 
     public override string Name => "play_card";
 
-    public override string Description => "在战斗中打出一张可用手牌。";
+    public override string Description => "Play a card from the local player's hand.";
 
     public override SkillCategory Category => SkillCategory.Combat;
 
@@ -25,19 +23,26 @@ public sealed class PlayCardSkill : RuntimeBackedSkillBase
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        return player?.Creature?.CombatState is not null;
+        return CombatActionGuard.CanTakeLocalTurnActions(player);
     }
 
     public override async Task<SkillExecutionResult> ExecuteAsync(AgentSkillParameters? parameters, CancellationToken cancellationToken)
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        if (player?.Creature?.CombatState is null)
+        if (!CombatActionGuard.CanTakeLocalTurnActions(player))
         {
-            return new SkillExecutionResult(false, "当前不在可出牌的战斗阶段。");
+            return new SkillExecutionResult(false, "当前不在可由本地玩家继续出牌的战斗阶段。");
         }
 
-        var hand = PileType.Hand.GetPile(player).Cards.ToList();
+        var localPlayer = player!;
+        var combatState = localPlayer.Creature?.CombatState;
+        if (combatState is null)
+        {
+            return new SkillExecutionResult(false, "当前无法读取本地玩家的战斗状态。");
+        }
+
+        var hand = PileType.Hand.GetPile(localPlayer).Cards.ToList();
         var playable = hand.Where(CanPlay).ToList();
         if (playable.Count == 0)
         {
@@ -49,7 +54,7 @@ public sealed class PlayCardSkill : RuntimeBackedSkillBase
             : null;
         card ??= playable[0];
 
-        var enemies = player.Creature.CombatState.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+        var enemies = combatState.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
         var target = ChooseTarget(card, enemies, parameters?.TargetName);
         var success = card.TryManualPlay(target);
         if (!success)

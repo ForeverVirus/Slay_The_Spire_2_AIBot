@@ -572,25 +572,26 @@ public sealed class AiBotRuntime : IDisposable
         }
 
         var player = LocalContext.GetMe(runState);
-        if (player is null)
+        if (!CombatActionGuard.CanTakeLocalTurnActions(player))
         {
             return false;
         }
 
-        var hand = PileType.Hand.GetPile(player).Cards.ToList();
+        var localPlayer = player!;
+        var hand = PileType.Hand.GetPile(localPlayer).Cards.ToList();
         var playable = hand.Where(CanAutoPlayCard).ToList();
-        var enemies = player.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+        var enemies = localPlayer.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
 
-        var usablePotions = player.Potions
+        var usablePotions = localPlayer.Potions
             .Where(IsPotionUsableInCombat)
             .ToList();
 
         if (usablePotions.Count > 0)
         {
-            var potionDecision = await DecisionEngine.ChoosePotionUseAsync(player, usablePotions, playable, enemies, GetCurrentAnalysis(), cancellationToken);
+            var potionDecision = await DecisionEngine.ChoosePotionUseAsync(localPlayer, usablePotions, playable, enemies, GetCurrentAnalysis(), cancellationToken);
             if (potionDecision.Potion is not null)
             {
-                var target = potionDecision.Target ?? ChoosePotionTarget(potionDecision.Potion, player, enemies);
+                var target = potionDecision.Target ?? ChoosePotionTarget(potionDecision.Potion, localPlayer, enemies);
                 if (!RequiresPotionTarget(potionDecision.Potion) || target is not null)
                 {
                     await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
@@ -603,13 +604,17 @@ public sealed class AiBotRuntime : IDisposable
             }
         }
 
-        var decision = await DecisionEngine.ChooseCombatActionAsync(player, playable, enemies, GetCurrentAnalysis(), cancellationToken);
+        var decision = await DecisionEngine.ChooseCombatActionAsync(localPlayer, playable, enemies, GetCurrentAnalysis(), cancellationToken);
 
         if (decision.EndTurn || decision.Card is null)
         {
             await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
             Log.Info($"[AiBot] Combat decision: ending turn. {decision.Reason}");
-            PlayerCmd.EndTurn(player, false);
+            if (!CombatActionGuard.QueueEndTurn(localPlayer))
+            {
+                Log.Warn("[AiBot] Combat decision wanted to end turn, but the local player could not enqueue an end-turn action.");
+                return false;
+            }
             await WaitForActionQueueToDrainAsync(cancellationToken);
             ApplyActionCooldown(Config.CombatActionDelayMs);
             return true;
@@ -617,12 +622,12 @@ public sealed class AiBotRuntime : IDisposable
 
         await WaitForActionWindowAsync(Config.CombatActionDelayMs, cancellationToken);
         Log.Info($"[AiBot] Combat decision: {decision.Reason}");
-        var combatTarget = decision.Target ?? ChooseCombatTarget(decision.Card, player, enemies);
+        var combatTarget = decision.Target ?? ChooseCombatTarget(decision.Card, localPlayer, enemies);
         if (!decision.Card.TryManualPlay(combatTarget))
         {
             var targetText = combatTarget is null ? "null" : $"{combatTarget.Name}#{combatTarget.CombatId}";
             Log.Warn($"[AiBot] Manual play failed for {decision.Card.Title}. targetType={decision.Card.TargetType}, target={targetText}. Ending turn instead.");
-            PlayerCmd.EndTurn(player, false);
+            CombatActionGuard.QueueEndTurn(localPlayer);
         }
 
         await WaitForActionQueueToDrainAsync(cancellationToken);

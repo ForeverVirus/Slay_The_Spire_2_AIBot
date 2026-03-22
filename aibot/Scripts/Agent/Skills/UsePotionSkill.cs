@@ -16,7 +16,7 @@ public sealed class UsePotionSkill : RuntimeBackedSkillBase
 
     public override string Name => "use_potion";
 
-    public override string Description => "在战斗中使用一个可用药水。";
+    public override string Description => "Use a combat potion for the local player.";
 
     public override SkillCategory Category => SkillCategory.Combat;
 
@@ -24,22 +24,23 @@ public sealed class UsePotionSkill : RuntimeBackedSkillBase
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        return player?.Potions.Any(IsUsable) ?? false;
+        return CombatActionGuard.CanTakeLocalTurnActions(player) && (player?.Potions.Any(IsUsable) ?? false);
     }
 
     public override async Task<SkillExecutionResult> ExecuteAsync(AgentSkillParameters? parameters, CancellationToken cancellationToken)
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        if (player is null)
+        if (!CombatActionGuard.CanTakeLocalTurnActions(player))
         {
-            return new SkillExecutionResult(false, "当前没有可用的玩家状态。 ");
+            return new SkillExecutionResult(false, "当前不在可由本地玩家继续使用药水的战斗阶段。");
         }
 
-        var potions = player.Potions.Where(IsUsable).ToList();
+        var localPlayer = player!;
+        var potions = localPlayer.Potions.Where(IsUsable).ToList();
         if (potions.Count == 0)
         {
-            return new SkillExecutionResult(false, "当前没有可使用的药水。 ");
+            return new SkillExecutionResult(false, "当前没有可使用的药水。");
         }
 
         var potion = !string.IsNullOrWhiteSpace(parameters?.PotionName)
@@ -47,8 +48,8 @@ public sealed class UsePotionSkill : RuntimeBackedSkillBase
             : null;
         potion ??= potions[0];
 
-        var enemies = player.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
-        var target = ChooseTarget(potion, player.Creature, enemies, parameters?.TargetName);
+        var enemies = localPlayer.Creature.CombatState?.HittableEnemies?.Where(enemy => enemy.IsAlive).ToList() ?? new List<Creature>();
+        var target = ChooseTarget(potion, localPlayer.Creature, enemies, parameters?.TargetName);
         potion.EnqueueManualUse(target);
 
         var actionExecutor = RunManager.Instance.ActionExecutor;

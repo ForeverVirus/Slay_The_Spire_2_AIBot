@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Runs;
 using aibot.Scripts.Core;
@@ -13,32 +12,31 @@ public sealed class EndTurnSkill : RuntimeBackedSkillBase
 
     public override string Name => "end_turn";
 
-    public override string Description => "结束当前战斗回合。";
+    public override string Description => "End the current combat turn.";
 
     public override SkillCategory Category => SkillCategory.Combat;
 
     public override bool CanExecute()
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
-        return LocalContext.GetMe(runState) is not null;
+        return CombatActionGuard.CanTakeLocalTurnActions(LocalContext.GetMe(runState));
     }
 
     public override async Task<SkillExecutionResult> ExecuteAsync(AgentSkillParameters? parameters, CancellationToken cancellationToken)
     {
         var runState = RunManager.Instance.DebugOnlyGetState();
         var player = LocalContext.GetMe(runState);
-        if (player is null)
+        if (!CombatActionGuard.QueueEndTurn(player))
         {
-            return new SkillExecutionResult(false, "当前没有可结束回合的玩家对象。 ");
+            return new SkillExecutionResult(false, "当前无法结束本地玩家的回合。");
         }
 
-        PlayerCmd.EndTurn(player, false);
         var actionExecutor = RunManager.Instance.ActionExecutor;
         if (actionExecutor is not null)
         {
             await actionExecutor.FinishedExecutingActions().WaitAsync(cancellationToken);
         }
 
-        return new SkillExecutionResult(true, "已结束当前回合。");
+        return new SkillExecutionResult(true, "已发起结束当前回合请求。");
     }
 }
